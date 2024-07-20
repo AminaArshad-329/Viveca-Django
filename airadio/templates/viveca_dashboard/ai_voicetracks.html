@@ -1,0 +1,446 @@
+{% extends "base.html" %}
+
+{% load static radio_tags el_pagination_tags %}
+
+{% block title %}AI Voicetracks{% endblock %}
+{% block navbar_title %}AI VOICETRACKS{% endblock %}
+
+{% block content %}
+
+<!-- Tailwind CSS forcefully called classes -->
+<div class="hidden bg-teal-600 hover:bg-teal-700 bg-sky-600 hover:bg-sky-700 bg-red-600 hover:bg-red-700 bg-yellow-600 hover:bg-red-700"></div>
+
+<div class="flex flex-col lg:flex-row w-full max-w-full gap-3">
+  <div class="flex flex-col w-full lg:w-2/3 mb-4">
+    <!-- Top Menu -->
+    <div class="bg-lighter-gray rounded-lg py-3 px-2 mb-3">
+      <h2 class="text-lg font-semibold leading-6 text-white mb-6">ACTIONS</h2>
+
+      <div class="flex flex-wrap justify-end items-center gap-4 md:gap-5 mb-5">
+        <div class="inline-block">
+          <label for="id_ramp" class="input-label mb-1">&nbsp;</label>
+          <div class="input-group flex relative">
+            <input type="checkbox" id="id_ramp" name="ramp" />
+            <label for="id_ramp" class="input-label ml-5">RAMP</label>
+          </div>
+        </div>
+
+        <div class="inline-block input-group">
+          <label for="id_position" class="input-label mb-1">POSITION</label>
+          <select id="id_position" name="position">
+            {% for position in position_prompts %}
+            <option value="{{ position.pk }}">
+              {{ position.position }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="inline-block input-group">
+          <label for="id_location_input" class="input-label mb-1">SELECT LOCATION</label>
+          <select id="id_location_input" class="select-input">
+            <option value="all" {% if request.GET.location_ref == 'all' %}selected{% endif %}>ALL</option>
+            {% for location in locations %}
+            <option value="{{ location.id }}" {% if request.GET.location_ref == location.id|slugify %}selected{% endif %}>
+              {{ location.location_city }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="inline-block input-group">
+          <label for="id_station_input" class="input-label mb-1">SELECT STATION</label>
+          <select id="id_station_input" class="select-input">
+            <option value="">-----</option>
+            {% for station in stations %}
+            <option value="{{ station.id }}" {% if request.GET.station_ref == station.id|slugify %}selected{% endif %}>
+              {{ station.station_name }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap justify-end items-center gap-2 mb-2">
+        <button type="button" class="viveca-primary-button">
+          <i class="fa-solid fa-trash fa-fw"></i> DELETE
+        </button>
+
+        <button type="button" class="viveca-primary-button">
+          <i class="fa-solid fa-pencil fa-fw"></i> UPDATE
+        </button>
+
+        <button type="button" class="viveca-primary-button">
+          <i class="fa-solid fa-refresh fa-fw"></i> SAVE AS
+        </button>
+      </div>
+    </div>
+
+    <!-- SetupAIVoicetrack -->
+    <div class="bg-lighter-gray rounded-lg py-3 px-2 mb-3">
+      <h2 class="text-lg font-semibold leading-6 text-white mb-6">SETUP AI VOICETRACKS</h2>
+
+      <div class="flex flex-row justify-end flex-wrap items-center gap-3">
+        <div class="flex flex-wrap items-center gap-2">
+          <div class="input-group relative">
+            <label for="id_voiceSelect" class="input-label">VOICE</label>
+          </div>
+          <div class="input-group input-group-fit-content larger-select">
+            <select id="id_voiceSelect" name="voiceSelect">
+              <option value="voice1">Ava Summers</option>
+              <option value="voice2">Nexus James</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="w-0.5 h-5 bg-gray-500 rounded-sm"></div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <div class="input-group relative pr-1">
+            <label for="id_duration_words" class="input-label">DURATION</label>
+          </div>
+          <div class="input-group input-group-fit-content larger-select">
+            <select id="id_duration_words" name="duration_words">
+              {% comment %} seconds presened as number of words {% endcomment %}
+              <option value="20">5s</option>
+              <option value="40">10s</option>
+              <option value="60" selected>15s</option>
+              <option value="120">30s</option>
+              <option value="240">60s</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="w-0.5 h-5 bg-gray-500 rounded-sm"></div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          <button type="button" class="inline-flex justify-center items-center gap-x-2 px-3 py-2.5 text-sm text-white font-semibold bg-emerald-700 hover:bg-emerald-800 rounded-md shadow-sm shrink-0">
+            <i class="fa-solid fa-backward"></i> PREVIOUS HOUR
+          </button>
+
+          <button type="button" class="inline-flex justify-center items-center gap-x-2 px-3 py-2.5 text-sm text-white font-semibold bg-emerald-700 hover:bg-emerald-800 rounded-md shadow-sm shrink-0">
+            <i class="fa-solid fa-forward"></i> NEXT HOUR
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Topics -->
+    <div class="flex flex-col md:flex-row gap-3 mb-3">
+      <div class="h-full bg-lighter-gray rounded-lg md:w-2/3 py-3 px-2">
+        <h2 class="text-lg font-semibold leading-6 text-white mb-6">TOPICS</h2>
+
+        {% regroup topic_prompts|dictsort:"color_group" by color_group as topics_list %}
+        {% for topic in topics_list %}
+          <div class="w-full flex flex-row flex-wrap justify-start bg-white gap-2 p-2 rounded-md mb-2">
+          {% for item in topic.list %}
+            {% include "viveca_dashboard/partials/ai_voicetracks_topics_button.html" with topic=item.topic bg_color=item.get_color_group %}
+          {% endfor %}
+          </div>
+        {% endfor %}
+      </div>
+
+      <div class="h-full bg-lighter-gray rounded-lg md:w-1/3 py-3 px-2">
+        <h2 class="text-lg font-semibold leading-6 text-white mb-6">VT COMPOSITION</h2>
+
+        <table id="vt_composition_table" class="w-full">
+          <tbody></tbody>
+        </table>
+
+        <button type="button" id="id_generate_voicetrack" onclick="generateVoicetrack()" class="inline-flex w-full justify-center items-center gap-x-2 xl:gap-x-3 px-3 py-2.5 text-sm text-white font-semibold bg-emerald-700 hover:bg-emerald-800 rounded-md shadow-sm shrink-0 mt-4{% if not request.GET.station_ref %} disabled{% endif %}">
+          <i id="id_generate_voicetrack_icon" class="fa-solid fa-pencil fa-fw"></i>
+          <svg id="id_generate_voicetrack_spinner" role="status" class="inline w-4 h-4 text-white animate-spin hidden" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="#E5E7EB"/>
+            <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentColor"/>
+          </svg>
+          GENERATE VOICETRACK
+        </button>
+      </div>
+    </div>
+
+    <!-- Text Editor -->
+    <div class="flex flex-col md:flex-row gap-3 mb-3">
+      <div class="bg-lighter-gray rounded-lg py-3 px-2 md:w-2/3">
+        <h2 class="text-lg font-semibold leading-6 text-white mb-6">EDIT SCRIPT</h2>
+        <textarea id="id_generated_voicetrack" rows="4" class="p-2.5 w-full text-sm text-white rounded-lg border bg-main-gray border-separator-gray placeholder-gray-400 focus:ring-ring-gray focus:border-ring-gray"
+          placeholder="Radio One, it's Ava Summers with you and Someone who is full of public appearances right now with her boyfriend is this girl. I am totally shipping this relationship, just in case you didn't realize by the amount I bang on about it. Taylor Swift on Radio One"></textarea>
+      </div>
+
+      <div class="bg-lighter-gray rounded-lg flex flex-col gap-2 py-3 px-2 md:w-1/3">
+        <button class="w-min-content h-full text-white bg-sky-500 hover:bg-sky-600 text-md font-semibold rounded-md flex flex-row justify-center items-center gap-2 p-2">
+          <i class="fa-solid fa-music"></i> GENERATE AUDIO
+        </button>
+
+        <button class="w-min-content h-full text-white bg-sky-500 hover:bg-sky-600 text-md font-semibold rounded-md flex flex-row justify-center items-center gap-2 p-2">
+          <i class="fa-solid fa-download"></i> EXPORT AUDIO
+        </button>
+      </div>
+    </div>
+
+    <!-- SoundWaves -->
+    <div class="w-full flex flex-row gap-2">
+      <div class="relative w-full bg-lighter-gray rounded-lg py-3 px-2">
+        <div id="waveform" class="text-black"
+          data-url="https://firebasestorage.googleapis.com/v0/b/podcastsite-1bedc.appspot.com/o/audio-files%2Frsdyncont-1.mp3?alt=media&token=4acc73f8-4cdd-432a-b3b5-6921cf802bd0"></div>
+        <div id="wavesurfer_loading" style="display:none" role="status" class="absolute top-0 left-0 w-full h-full flex justify-center items-center">
+          <svg aria-hidden="true" class="w-10 h-10 text-gray-200 animate-spin fill-blue-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
+              <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill"/>
+          </svg>
+          <span class="sr-only">Loading...</span>
+        </div>
+      </div>
+
+      <div class="h-full bg-lighter-gray rounded-lg flex items-center py-3 px-2">
+        <button type="button" disabled id="waveform_toggle_button" class="disabled_waveform_button w-full h-full flex justify-center items-center text-white">
+          <img class="w-12 h-12" src="{% static "images/play_button_white.svg" %}" alt="">
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="w-full lg:w-1/3 max-h-screen h-screen lg:overflow-y-auto mb-4">
+    <div class="bg-lighter-gray py-3 rounded-lg overflow-x-scroll">
+      <table id="playlist_table" class="w-full whitespace-nowrap text-left divide-y-2 divide-separator-gray">
+        <thead class="text-sm leading-6 text-white">
+          <tr>
+            <th scope="col" class="py-2 px-3 text-sm text-white font-semibold">
+              PLAY
+            </th>
+            <th scope="col" class="py-2 px-3 text-sm text-white font-semibold">
+              TITLE
+            </th>
+            <th scope="col" class="py-2 px-3 text-sm text-white text-center font-semibold">
+              STATUS
+            </th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-separator-gray">
+          {% for item in playlist %}
+          {% get_playlist_item item as object %}
+          <tr data-song-id="{{item.content_object.id}}" data-type="{{ object|to_class_name|slugify }}">
+            <td class="py-2 px-3">
+              <div class="flex items-center justify-center gap-x-2">
+                <button type="button" id="id_audio{{item.id}}" data-url="{{ object.media }}" onclick="playAudio({{item.id}})" class="flex items-center bg-teal-600 rounded-full p-2.5 shrink-0">
+                  <img class="w-5 h-5" src="{% static "images/play_button_white.svg" %}" alt="">
+                </button>
+              </div>
+            </td>
+            <td class="py-2 px-3">
+              <div class="font-mono text-sm leading-6 truncate {{ object|text_color_class }}">
+                {% if object.title %}
+                {{ object.title }}
+                {% elif object.artistname %}
+                {{ object.artistname|default:'-' }}
+                {% else %}
+                {{ object|to_class_name }}
+                {% endif %}
+              </div>
+            </td>
+            <td class="py-2 px-3 text-sm text-center leading-6">
+              <div class="flex items-center justify-start md:justify-center gap-x-2">
+                <div class="hidden rounded-full p-1">
+                  <div class="h-2 w-2 rounded-full bg-current">
+                  </div>
+                </div>
+                <div class="hidden text-white">
+                  Generated
+                </div>
+                <button onClick="addNewRowForVoicetrack({{item.id}}, {{forloop.counter}});" class="flex items-center bg-gray-700 text-white rounded-full p-3 shrink-0">
+                  <svg class="w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 16 20">
+                    <path stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5"
+                      d="M15 7v3a5.006 5.006 0 0 1-5 5H6a5.006 5.006 0 0 1-5-5V7m7 9v3m-3 0h6M7 1h2a3 3 0 0 1 3 3v5a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V4a3 3 0 0 1 3-3Z" />
+                  </svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr class="odd">
+            <td class="text-base text-center text-white font-semibold px-3 pt-6 lg:pt-8" valign="center" colspan="5" class="dataTables_empty">No records found
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra-scripts %}
+<script src="https://unpkg.com/wavesurfer.js@7"></script>
+<script src="https://unpkg.com/wavesurfer.js@7/dist/plugins/regions.min.js"></script>
+<script src="{% static 'js/table_audio_player.js' %}" type="text/javascript"></script>
+<script src="{% static 'js/wavesurfer_methods.js' %}" type="text/javascript"></script>
+
+<script type="text/javascript">
+  $(document).ready(function () {
+    createWaveform();
+
+    $('#id_location_input').on('change', function (e) {
+      let url = new URL(window.location.href);
+      url.searchParams.set('location_ref', $(this).val());
+      window.location.href = url;
+    });
+
+    $('#id_station_input').on('change', function (e) {
+      let url = new URL(window.location.href);
+      url.searchParams.set('station_ref', $(this).val());
+      window.location.href = url;
+    });
+  });
+
+  function makeRowDragable () {
+    var table = document.getElementById('vt_composition_table');
+    var rows = table.rows;
+    var dragSrcEl = null;
+
+    for (var i = 0; i < rows.length; i++) {
+      var row = rows[i];
+      row.draggable = true;
+
+      row.addEventListener('dragstart', function (e) {
+        dragSrcEl = this;
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/html', this.outerHTML);
+      });
+
+      row.addEventListener('dragend', function (e) {
+        table.querySelectorAll('.border-t', '.border-blue-300').forEach(function (el) {
+          el.classList.remove('border-t', 'border-blue-300');
+        });
+      });
+
+      row.addEventListener('dragover', function (e) {
+        e.preventDefault();
+        this.classList.add('border-t', 'border-blue-300');
+      });
+
+      row.addEventListener('dragenter', function (e) {
+        e.preventDefault();
+        this.classList.add('border-t', 'border-blue-300');
+      });
+
+      row.addEventListener('dragleave', function (e) {
+        this.classList.remove('border-t', 'border-blue-300');
+      });
+
+      row.addEventListener('drop', function (e) {
+        e.preventDefault();
+        if (dragSrcEl && dragSrcEl != this) {
+          var sourceIndex = dragSrcEl.rowIndex;
+          var targetIndex = this.rowIndex;
+          if (sourceIndex < targetIndex) {
+            table.tBodies[0].insertBefore(dragSrcEl, this.nextSibling);
+          } else {
+            table.tBodies[0].insertBefore(dragSrcEl, this);
+          }
+        }
+
+        table.querySelectorAll('.border-t-2', '.border-blue-300').forEach(function (el) {
+          el.classList.remove('border-t-2', 'border-blue-300');
+        });
+      });
+    }
+  }
+
+  function addTopicToComposition(topic, bg_color) {
+    let table_body = document.getElementById('vt_composition_table').getElementsByTagName('tbody')[0];
+    let row = table_body.insertRow();
+    row.innerHTML = `
+      <td class="w-full flex flex-row items-center bg-white gap-2 p-2 rounded-md mb-2">
+        <p class="w-full bg-${bg_color}-600 text-sm text-white rounded-md p-2">${topic}</p>
+        <button type="button" onclick="removeTopicFromComposition(this);" class="w-6 h-6 text-sm text-red-500 font-semibold flex justify-center items-center shrink-0">
+          <i class="fa-solid fa-trash fa-fw"></i>
+        </button>
+      </td>`;
+    makeRowDragable();
+  }
+
+  function removeTopicFromComposition(el) {
+    let row = el.parentNode.parentNode;
+    row.parentNode.removeChild(row);
+  }
+
+  function addNewRowForVoicetrack(nextSongId, rowIndex) {
+    let table = document.getElementById("playlist_table");
+    let row = table.insertRow(rowIndex);
+    let cell1 = row.insertCell(0);
+    cell1.id = "id_voicetrack_row";
+    cell1.className = "py-2 px-3 font-mono text-sm text-center leading-6";
+    cell1.colSpan = 3;
+    cell1.innerHTML = "New AI Voicetrack";
+
+    for (let i = rowIndex - 1; i > 0; i--) {
+      if (table.rows[i].getAttribute("data-type") == "library") {
+        let prevRowSongId = table.rows[i].getAttribute("data-song-id");
+        cell1.setAttribute("data-prev-song", prevRowSongId);
+        break;
+      }
+    }
+
+    for (let i = rowIndex + 1; i < table.rows.length; i++) {
+      if (table.rows[i].getAttribute("data-type") == "library") {
+        let nextRowSongId = table.rows[i].getAttribute("data-song-id");
+        cell1.setAttribute("data-next-song", nextRowSongId);
+        break;
+      }
+    }
+  }
+
+  function enableGenerateVoicetrackButton() {
+    $('#id_generate_voicetrack').removeClass('disabled');
+    $('#id_generate_voicetrack_icon').removeClass('hidden');
+    $('#id_generate_voicetrack_spinner').addClass('hidden');
+  }
+
+  function generateVoicetrack() {
+    $('#id_generate_voicetrack').addClass('disabled');
+    $('#id_generate_voicetrack_icon').addClass('hidden');
+    $('#id_generate_voicetrack_spinner').removeClass('hidden');
+    let id_voicetrack_row = document.getElementById("id_voicetrack_row");
+    if (id_voicetrack_row == null) {
+      alert("Please add a voicetrack position on the playlist!");
+      enableGenerateVoicetrackButton();
+      return;
+    }
+    let prevSongId = id_voicetrack_row.getAttribute("data-prev-song", null);
+    let nextSongId = id_voicetrack_row.getAttribute("data-next-song", null);
+    let searchParams = new URLSearchParams(window.location.search);
+    let data = {
+      'prev_song_id': prevSongId,
+      'next_song_id': nextSongId,
+      'station_id': searchParams.get('station_ref'),
+      'words_limit': $('#id_duration_words').val(),
+      'position_prompt_id': $('#id_position').val(),
+    };
+    $.ajax({
+      data: data,
+      type: 'post',
+      url: "{% url 'viveca_dashboard_ai_voicetracks_generate_voicetrack' %}",
+      success: function (data) {
+        $('#id_generated_voicetrack').text(data);
+        enableGenerateVoicetrackButton();
+      },
+      error: function (e) {
+        enableGenerateVoicetrackButton();
+        if (["Failed to generate a voicetrack with the current prompts!", "Empty prompts were attached!", "Error while getting prompts!"].includes(e.responseText)) {
+          alert(e.responseText);
+        } else {
+          alert('An error occurred while generating the voicetrack!');
+        }
+      }
+    });
+  }
+ 
+  function loadInitialMarkers() {
+    // let markers = [
+    //  {"markerId": "id_in_point", "label": "IN"},
+    //  {"markerId": "id_aux_point", "label": "AUX"},
+    // ];
+    // markers.forEach((marker) => setMarkerFromInput(marker['markerId'], marker['label']));
+  }
+
+</script>
+{% endblock %}

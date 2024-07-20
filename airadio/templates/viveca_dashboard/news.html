@@ -1,0 +1,1115 @@
+{% extends "base.html" %}
+
+{% load static radio_tags el_pagination_tags %}
+
+{% block title %}News{% endblock %}
+{% block navbar_title %}NEWS{% endblock %}
+
+{% block content %}
+
+<!-- Tailwind CSS forcefully called classes -->
+<div class="hidden select-input min-w-40"></div>
+
+<div class="flex flex-col lg:flex-row w-full max-w-full gap-3">
+  <div class="flex flex-col w-full lg:w-2/3 mb-4">
+    <!-- Generate with AI -->
+    <div class="bg-lighter-gray rounded-lg p-4 mb-3">
+      <h2 class="text-lg font-semibold leading-6 text-white mb-6">GENERATE WITH AI</h2>
+
+      <div id="generateNewsFormBox">
+        {% include 'viveca_dashboard/partials/news_generate_form.html' %}
+      </div>
+    </div>
+
+    <!-- Generate manually -->
+    <div class="w-full bg-lighter-gray rounded-lg p-4 mb-4">
+      <h2 class="text-lg font-semibold leading-6 text-white mb-6">GENERATE MANUALLY</h2>
+
+      <div class="max-w-lg">
+        <div class="input-group pt-3 mb-5">
+          <label for="id_manual_voice" class="input-label mb-1">SELECT VOICE</label>
+          <select id="id_manual_voice" name="manual_voice" class="w-full max-w-full">
+            <option>SELECT</option>
+            {% for voice in voice_codes %}
+            <option value="{{ voice.0 }}">
+              {{ voice.1 }}
+            </option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <!-- INTRO -->
+        <div class="input-group pt-3 mb-3">
+          <label for="id_intro" class="input-label mb-1">INTRO</label>
+          <div class="form-control-box">
+            <input type="text" id="id_intro" name="intro" placeholder="Here's the latest from the newsroom" class="form-control w-full">
+          </div>
+        </div>
+
+        <div class="flex flex-wrap gap-3 md:gap-4 mb-8">
+          <button type="button" id="id_intro_generate_button" onclick="generateNewsAudio('id_intro');"
+            class="inline-flex justify-center items-center gap-x-2 rounded-md bg-cyan-600 hover:bg-cyan-700 px-3 py-2 cursor-pointer text-sm font-semibold text-white shrink-0 shadow-sm">
+            <i id="id_intro_generate_icon" class="fa-brands fa-creative-commons-sampling fa-fw"></i>
+            <svg id="id_intro_generate_spinner" role="status" class="inline w-4 h-4 text-white animate-spin hidden" viewBox="0 0 100 101"
+              fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path
+                d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+                fill="#E5E7EB" />
+              <path
+                d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+                fill="currentColor" />
+            </svg>
+            <span>GENERATE</span>
+          </button>
+
+          <button type="button" id="id_intro_play_button" onclick="playNewsAudio('id_intro');"
+            class="inline-flex justify-center items-center gap-x-2 rounded-md bg-sky-600 hover:bg-sky-700 px-3 py-2 cursor-pointer text-sm font-semibold text-white shrink-0 shadow-sm disabled">
+            <i id="id_intro_button_play_icon" class="fa-solid fa-play fa-fw"></i>
+            <i id="id_intro_button_pause_icon" class="fa-solid fa-pause fa-fw hidden"></i>
+            <span>PREVIEW</span>
+          </button>
+          <audio id="id_intro_audio"></audio>
+
+          <button type="button" id="id_intro_add_to_playlist_button" onclick="addNewsbedItem('id_intro');"
+            class="inline-flex justify-center items-center gap-x-2 rounded-md bg-teal-600 hover:bg-teal-700 px-3 py-2 cursor-pointer text-sm font-semibold text-white shrink-0 shadow-sm disabled">
+            <i class="fa-solid fa-plus fa-fw"></i> ADD TO PLAYLIST
+          </button>
+        </div>
+
+        <!-- NEWS -->
+        <div id="id_news_script_group" class="mb-8">
+          <div class="input-group pt-3 mb-3">
+            <label for="id_news_script" class="input-label mb-1">NEWS SCRIPT</label>
+
+            <div class="form-control-box">
+              <textarea id="id_news_script" rows="4"
+                class="p-2.5 w-full text-sm text-white rounded-lg border bg-main-gray border-separator-gray placeholder-gray-400 focus:ring-ring-gray focus:border-ring-gray"
+                placeholder="Radio One, it's Ava Summers with you and Someone who is full of public appearances right now with her boyfriend is this girl. I am totally shipping this relationship, just in case you didn't realize by the amount I bang on about it. Taylor Swift on Radio One"></textarea>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap gap-3 md:gap-4">
+            <button type="button" id="id_news_script_generate_button" onclick="generateNewsAudio('id_news_script');"
+              class="inline-flex justify-center items-center gap-x-2 rounded-md bg-cyan-600 hover:bg-cyan-700 px-3 py-2 cursor-pointer text-sm font-semibold text-white shrink-0 shadow-sm">
+              <i id="id_news_script_generate_icon" class="fa-brands fa-creative-commons-sampling fa-fw"></i>
+              <svg id="id_news_script_generate_spinner" role="status" class="inline w-4 h-4 text-white animate-spin hidden"
+                viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+                  fill="#E5E7EB" />
+                <path
+                  d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+                  fill="currentColor" />
+              </svg>
+              <span>GENERATE</span>
+            </button>
+
+            <button type="button" id="id_news_script_play_button" onclick="playNewsAudio('id_news_script');"
+              class="inline-flex justify-center items-center gap-x-2 rounded-md bg-sky-600 hover:bg-sky-700 px-3 py-2 cursor-pointer text-sm font-semibold text-white shrink-0 shadow-sm disabled">
+              <i id="id_news_script_button_play_icon" class="fa-solid fa-play fa-fw"></i>
+              <i id="id_news_script_button_pause_icon" class="fa-solid fa-pause fa-fw hidden"></i>
+              <span>PREVIEW</span>
+            </button>
+            <audio id="id_news_script_audio"></audio>
+
+            <button type="button" id="id_news_script_add_to_playlist_button" onclick="addNewsbedItem('id_news_script');"
+              class="inline-flex justify-center items-center gap-x-2 rounded-md bg-teal-600 hover:bg-teal-700 px-3 py-2 cursor-pointer text-sm font-semibold text-white shrink-0 shadow-sm disabled">
+              <i class="fa-solid fa-plus fa-fw"></i> ADD TO PLAYLIST
+            </button>
+          </div>
+        </div>
+
+        <!-- NEWS 2 -->
+        <div id="id_news_script_2_group" class="mb-8 hidden">
+          <div class="input-group pt-3 mb-3">
+            <label for="id_news_script_2" class="input-label mb-1">NEWS SCRIPT 2</label>
+
+            <div class="form-control-box">
+              <textarea id="id_news_script_2" rows="4"
+                class="p-2.5 w-full text-sm text-white rounded-lg border bg-main-gray border-separator-gray placeholder-gray-400 focus:ring-ring-gray focus:border-ring-gray"
+                placeholder="Radio One, it's Ava Summers with you and Someone who is full of public appearances right now with her boyfriend is this girl. I am totally shipping this relationship, just in case you didn't realize by the amount I bang on about it. Taylor Swift on Radio One"></textarea>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap gap-3 md:gap-4">
+            <button type="button" id="id_news_script_2_generate_button" onclick="generateNewsAudio('id_news_script_2');"
+              class="inline-flex justify-center items-center gap-x-2 rounded-md bg-cyan-600 hover:bg-cyan-700 px-3 py-2 cursor-pointer text-sm font-semibold text-white shrink-0 shadow-sm">
+              <i id="id_news_script_2_generate_icon" class="fa-brands fa-creative-commons-sampling fa-fw"></i>
+              <svg id="id_news_script_2_generate_spinner" role="status" class="inline w-4 h-4 text-white animate-spin hidden"
+                viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+                  fill="#E5E7EB" />
+                <path
+                  d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+                  fill="currentColor" />
+              </svg>
+              <span>GENERATE</span>
+            </button>
+
+            <button type="button" id="id_news_script_2_play_button" onclick="playNewsAudio('id_news_script_2');"
+              class="inline-flex justify-center items-center gap-x-2 rounded-md bg-sky-600 hover:bg-sky-700 px-3 py-2 cursor-pointer text-sm font-semibold text-white shrink-0 shadow-sm disabled">
+              <i id="id_news_script_2_button_play_icon" class="fa-solid fa-play fa-fw"></i>
+              <i id="id_news_script_2_button_pause_icon" class="fa-solid fa-pause fa-fw hidden"></i>
+              <span>PREVIEW</span>
+            </button>
+            <audio id="id_news_script_2_audio"></audio>
+
+            <button type="button" id="id_news_script_2_add_to_playlist_button" onclick="addNewsbedItem('id_news_script_2');"
+              class="inline-flex justify-center items-center gap-x-2 rounded-md bg-teal-600 hover:bg-teal-700 px-3 py-2 cursor-pointer text-sm font-semibold text-white shrink-0 shadow-sm disabled">
+              <i class="fa-solid fa-plus fa-fw"></i> ADD TO PLAYLIST
+            </button>
+          </div>
+        </div>
+
+        <!-- NEWS 3 -->
+        <div id="id_news_script_3_group" class="mb-8 hidden">
+          <div class="input-group pt-3 mb-3">
+            <label for="id_news_script_3" class="input-label mb-1">NEWS SCRIPT 3</label>
+
+            <div class="form-control-box">
+              <textarea id="id_news_script_3" rows="4"
+                class="p-2.5 w-full text-sm text-white rounded-lg border bg-main-gray border-separator-gray placeholder-gray-400 focus:ring-ring-gray focus:border-ring-gray"
+                placeholder="Radio One, it's Ava Summers with you and Someone who is full of public appearances right now with her boyfriend is this girl. I am totally shipping this relationship, just in case you didn't realize by the amount I bang on about it. Taylor Swift on Radio One"></textarea>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap gap-3 md:gap-4">
+            <button type="button" id="id_news_script_3_generate_button" onclick="generateNewsAudio('id_news_script_3');"
+              class="inline-flex justify-center items-center gap-x-2 rounded-md bg-cyan-600 hover:bg-cyan-700 px-3 py-2 cursor-pointer text-sm font-semibold text-white shrink-0 shadow-sm">
+              <i id="id_news_script_3_generate_icon" class="fa-brands fa-creative-commons-sampling fa-fw"></i>
+              <svg id="id_news_script_3_generate_spinner" role="status" class="inline w-4 h-4 text-white animate-spin hidden"
+                viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+                  fill="#E5E7EB" />
+                <path
+                  d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+                  fill="currentColor" />
+              </svg>
+              <span>GENERATE</span>
+            </button>
+
+            <button type="button" id="id_news_script_3_play_button" onclick="playNewsAudio('id_news_script_3');"
+              class="inline-flex justify-center items-center gap-x-2 rounded-md bg-sky-600 hover:bg-sky-700 px-3 py-2 cursor-pointer text-sm font-semibold text-white shrink-0 shadow-sm disabled">
+              <i id="id_news_script_3_button_play_icon" class="fa-solid fa-play fa-fw"></i>
+              <i id="id_news_script_3_button_pause_icon" class="fa-solid fa-pause fa-fw hidden"></i>
+              <span>PREVIEW</span>
+            </button>
+            <audio id="id_news_script_3_audio"></audio>
+
+            <button type="button" id="id_news_script_3_add_to_playlist_button" onclick="addNewsbedItem('id_news_script_3');"
+              class="inline-flex justify-center items-center gap-x-2 rounded-md bg-teal-600 hover:bg-teal-700 px-3 py-2 cursor-pointer text-sm font-semibold text-white shrink-0 shadow-sm disabled">
+              <i class="fa-solid fa-plus fa-fw"></i> ADD TO PLAYLIST
+            </button>
+          </div>
+        </div>
+
+        <!-- NEWS 4 -->
+        <div id="id_news_script_4_group" class="mb-8 hidden">
+          <div class="input-group pt-3 mb-3">
+            <label for="id_news_script_4" class="input-label mb-1">NEWS SCRIPT 4</label>
+
+            <div class="form-control-box">
+              <textarea id="id_news_script_4" rows="4"
+                class="p-2.5 w-full text-sm text-white rounded-lg border bg-main-gray border-separator-gray placeholder-gray-400 focus:ring-ring-gray focus:border-ring-gray"
+                placeholder="Radio One, it's Ava Summers with you and Someone who is full of public appearances right now with her boyfriend is this girl. I am totally shipping this relationship, just in case you didn't realize by the amount I bang on about it. Taylor Swift on Radio One"></textarea>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap gap-3 md:gap-4">
+            <button type="button" id="id_news_script_4_generate_button" onclick="generateNewsAudio('id_news_script_4');"
+              class="inline-flex justify-center items-center gap-x-2 rounded-md bg-cyan-600 hover:bg-cyan-700 px-3 py-2 cursor-pointer text-sm font-semibold text-white shrink-0 shadow-sm">
+              <i id="id_news_script_4_generate_icon" class="fa-brands fa-creative-commons-sampling fa-fw"></i>
+              <svg id="id_news_script_4_generate_spinner" role="status" class="inline w-4 h-4 text-white animate-spin hidden"
+                viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+                  fill="#E5E7EB" />
+                <path
+                  d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+                  fill="currentColor" />
+              </svg>
+              <span>GENERATE</span>
+            </button>
+
+            <button type="button" id="id_news_script_4_play_button" onclick="playNewsAudio('id_news_script_4');"
+              class="inline-flex justify-center items-center gap-x-2 rounded-md bg-sky-600 hover:bg-sky-700 px-3 py-2 cursor-pointer text-sm font-semibold text-white shrink-0 shadow-sm disabled">
+              <i id="id_news_script_4_button_play_icon" class="fa-solid fa-play fa-fw"></i>
+              <i id="id_news_script_4_button_pause_icon" class="fa-solid fa-pause fa-fw hidden"></i>
+              <span>PREVIEW</span>
+            </button>
+            <audio id="id_news_script_4_audio"></audio>
+
+            <button type="button" id="id_news_script_4_add_to_playlist_button" onclick="addNewsbedItem('id_news_script_4');"
+              class="inline-flex justify-center items-center gap-x-2 rounded-md bg-teal-600 hover:bg-teal-700 px-3 py-2 cursor-pointer text-sm font-semibold text-white shrink-0 shadow-sm disabled">
+              <i class="fa-solid fa-plus fa-fw"></i> ADD TO PLAYLIST
+            </button>
+          </div>
+        </div>
+
+        <!-- NEWS 5 -->
+        <div id="id_news_script_5_group" class="mb-8 hidden">
+          <div class="input-group pt-3 mb-3">
+            <label for="id_news_script_5" class="input-label mb-1">NEWS SCRIPT 5</label>
+
+            <div class="form-control-box">
+              <textarea id="id_news_script_5" rows="4"
+                class="p-2.5 w-full text-sm text-white rounded-lg border bg-main-gray border-separator-gray placeholder-gray-400 focus:ring-ring-gray focus:border-ring-gray"
+                placeholder="Radio One, it's Ava Summers with you and Someone who is full of public appearances right now with her boyfriend is this girl. I am totally shipping this relationship, just in case you didn't realize by the amount I bang on about it. Taylor Swift on Radio One"></textarea>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap gap-3 md:gap-4">
+            <button type="button" id="id_news_script_5_generate_button" onclick="generateNewsAudio('id_news_script_5');"
+              class="inline-flex justify-center items-center gap-x-2 rounded-md bg-cyan-600 hover:bg-cyan-700 px-3 py-2 cursor-pointer text-sm font-semibold text-white shrink-0 shadow-sm">
+              <i id="id_news_script_5_generate_icon" class="fa-brands fa-creative-commons-sampling fa-fw"></i>
+              <svg id="id_news_script_5_generate_spinner" role="status" class="inline w-4 h-4 text-white animate-spin hidden"
+                viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+                  fill="#E5E7EB" />
+                <path
+                  d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+                  fill="currentColor" />
+              </svg>
+              <span>GENERATE</span>
+            </button>
+
+            <button type="button" id="id_news_script_5_play_button" onclick="playNewsAudio('id_news_script_5');"
+              class="inline-flex justify-center items-center gap-x-2 rounded-md bg-sky-600 hover:bg-sky-700 px-3 py-2 cursor-pointer text-sm font-semibold text-white shrink-0 shadow-sm disabled">
+              <i id="id_news_script_5_button_play_icon" class="fa-solid fa-play fa-fw"></i>
+              <i id="id_news_script_5_button_pause_icon" class="fa-solid fa-pause fa-fw hidden"></i>
+              <span>PREVIEW</span>
+            </button>
+            <audio id="id_news_script_5_audio"></audio>
+
+            <button type="button" id="id_news_script_5_add_to_playlist_button" onclick="addNewsbedItem('id_news_script_5');"
+              class="inline-flex justify-center items-center gap-x-2 rounded-md bg-teal-600 hover:bg-teal-700 px-3 py-2 cursor-pointer text-sm font-semibold text-white shrink-0 shadow-sm disabled">
+              <i class="fa-solid fa-plus fa-fw"></i> ADD TO PLAYLIST
+            </button>
+          </div>
+        </div>
+
+        <!-- ENTERTAINMENT -->
+        <div class="input-group pt-3 mb-3">
+          <div class="flex gap-x-2 mb-1">
+            <label for="id_entertainment_script" class="input-label mb-0">ENTERTAINMENT SCRIPT</label>
+            <button type="button" id="id_entertainment_script_previous" onclick="previous_suggestion('entertainment_news');"
+              class="inline-flex justify-center items-center rounded-md bg-blue-600 hover:bg-blue-700 px-2 py-1 cursor-pointer text-xs text-white shrink-0 shadow-sm disabled hidden">
+              <i class="fa-solid fa-chevron-left fa-fw"></i>
+            </button>
+            <button type="button" id="id_entertainment_script_next" onclick="next_suggestion('entertainment_news');"
+              class="inline-flex justify-center items-center rounded-md bg-blue-600 hover:bg-blue-700 px-2 py-1 cursor-pointer text-xs text-white shrink-0 shadow-sm hidden">
+              <i class="fa-solid fa-chevron-right fa-fw"></i>
+            </button>
+          </div>
+
+          <div class="form-control-box">
+            <textarea id="id_entertainment_script" rows="4"
+              class="p-2.5 w-full text-sm text-white rounded-lg border bg-main-gray border-separator-gray placeholder-gray-400 focus:ring-ring-gray focus:border-ring-gray"
+              placeholder="Radio One, it's Ava Summers with you and Someone who is full of public appearances right now with her boyfriend is this girl. I am totally shipping this relationship, just in case you didn't realize by the amount I bang on about it. Taylor Swift on Radio One"></textarea>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap gap-3 md:gap-4 mb-8">
+          <button type="button" id="id_entertainment_script_generate_button" onclick="generateNewsAudio('id_entertainment_script');"
+            class="inline-flex justify-center items-center gap-x-2 rounded-md bg-cyan-600 hover:bg-cyan-700 px-3 py-2 cursor-pointer text-sm font-semibold text-white shrink-0 shadow-sm">
+            <i id="id_entertainment_script_generate_icon" class="fa-brands fa-creative-commons-sampling fa-fw"></i>
+            <svg id="id_entertainment_script_generate_spinner" role="status" class="inline w-4 h-4 text-white animate-spin hidden"
+              viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path
+                d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+                fill="#E5E7EB" />
+              <path
+                d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+                fill="currentColor" />
+            </svg>
+            <span>GENERATE</span>
+          </button>
+
+          <button type="button" id="id_entertainment_script_play_button" onclick="playNewsAudio('id_entertainment_script');"
+            class="inline-flex justify-center items-center gap-x-2 rounded-md bg-sky-600 hover:bg-sky-700 px-3 py-2 cursor-pointer text-sm font-semibold text-white shrink-0 shadow-sm disabled">
+            <i id="id_entertainment_script_button_play_icon" class="fa-solid fa-play fa-fw"></i>
+            <i id="id_entertainment_script_button_pause_icon" class="fa-solid fa-pause fa-fw hidden"></i>
+            <span>PREVIEW</span>
+          </button>
+          <audio id="id_entertainment_script_audio"></audio>
+
+          <button type="button" id="id_entertainment_script_add_to_playlist_button" onclick="addNewsbedItem('id_entertainment_script');"
+            class="inline-flex justify-center items-center gap-x-2 rounded-md bg-teal-600 hover:bg-teal-700 px-3 py-2 cursor-pointer text-sm font-semibold text-white shrink-0 shadow-sm disabled">
+            <i class="fa-solid fa-plus fa-fw"></i> ADD TO PLAYLIST
+          </button>
+        </div>
+
+        <!-- SPORTS -->
+        <div class="input-group pt-3 mb-3">
+          <div class="flex gap-x-2 mb-1">
+            <label for="id_sports_script" class="input-label mb-0">SPORTS SCRIPT</label>
+            <button type="button" id="id_sports_script_previous" onclick="previous_suggestion('sports_news');"
+              class="inline-flex justify-center items-center rounded-md bg-blue-600 hover:bg-blue-700 px-2 py-1 cursor-pointer text-xs text-white shrink-0 shadow-sm disabled hidden">
+              <i class="fa-solid fa-chevron-left fa-fw"></i>
+            </button>
+            <button type="button" id="id_sports_script_next" onclick="next_suggestion('sports_news');"
+              class="inline-flex justify-center items-center rounded-md bg-blue-600 hover:bg-blue-700 px-2 py-1 cursor-pointer text-xs text-white shrink-0 shadow-sm hidden">
+              <i class="fa-solid fa-chevron-right fa-fw"></i>
+            </button>
+          </div>
+
+          <div class="form-control-box">
+            <textarea id="id_sports_script" rows="4"
+              class="p-2.5 w-full text-sm text-white rounded-lg border bg-main-gray border-separator-gray placeholder-gray-400 focus:ring-ring-gray focus:border-ring-gray"
+              placeholder="Radio One, it's Ava Summers with you and Someone who is full of public appearances right now with her boyfriend is this girl. I am totally shipping this relationship, just in case you didn't realize by the amount I bang on about it. Taylor Swift on Radio One"></textarea>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap gap-3 md:gap-4 mb-8">
+          <button type="button" id="id_sports_script_generate_button" onclick="generateNewsAudio('id_sports_script');"
+            class="inline-flex justify-center items-center gap-x-2 rounded-md bg-cyan-600 hover:bg-cyan-700 px-3 py-2 cursor-pointer text-sm font-semibold text-white shrink-0 shadow-sm">
+            <i id="id_sports_script_generate_icon" class="fa-brands fa-creative-commons-sampling fa-fw"></i>
+            <svg id="id_sports_script_generate_spinner" role="status" class="inline w-4 h-4 text-white animate-spin hidden"
+              viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path
+                d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+                fill="#E5E7EB" />
+              <path
+                d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+                fill="currentColor" />
+            </svg>
+            <span>GENERATE</span>
+          </button>
+
+          <button type="button" id="id_sports_script_play_button" onclick="playNewsAudio('id_sports_script');"
+            class="inline-flex justify-center items-center gap-x-2 rounded-md bg-sky-600 hover:bg-sky-700 px-3 py-2 cursor-pointer text-sm font-semibold text-white shrink-0 shadow-sm disabled">
+            <i id="id_sports_script_button_play_icon" class="fa-solid fa-play fa-fw"></i>
+            <i id="id_sports_script_button_pause_icon" class="fa-solid fa-pause fa-fw hidden"></i>
+            <span>PREVIEW</span>
+          </button>
+          <audio id="id_sports_script_audio"></audio>
+
+          <button type="button" id="id_sports_script_add_to_playlist_button" onclick="addNewsbedItem('id_sports_script');"
+            class="inline-flex justify-center items-center gap-x-2 rounded-md bg-teal-600 hover:bg-teal-700 px-3 py-2 cursor-pointer text-sm font-semibold text-white shrink-0 shadow-sm disabled">
+            <i class="fa-solid fa-plus fa-fw"></i> ADD TO PLAYLIST
+          </button>
+        </div>
+
+        <!-- WEATHER -->
+        <div class="input-group pt-3 mb-3">
+          <label for="id_weather" class="input-label mb-1">WEATHER</label>
+          <div class="form-control-box">
+            <input type="text" id="id_weather" name="weather" placeholder="Expect a cool day in your location with the current temperature at 25 Celcius." class="form-control w-full">
+          </div>
+        </div>
+
+        <div class="flex flex-wrap gap-3 md:gap-4 mb-8">
+          <button type="button" id="id_weather_generate_button" onclick="generateNewsAudio('id_weather');"
+            class="inline-flex justify-center items-center gap-x-2 rounded-md bg-cyan-600 hover:bg-cyan-700 px-3 py-2 cursor-pointer text-sm font-semibold text-white shrink-0 shadow-sm">
+            <i id="id_weather_generate_icon" class="fa-brands fa-creative-commons-sampling fa-fw"></i>
+            <svg id="id_weather_generate_spinner" role="status" class="inline w-4 h-4 text-white animate-spin hidden" viewBox="0 0 100 101"
+              fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path
+                d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+                fill="#E5E7EB" />
+              <path
+                d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+                fill="currentColor" />
+            </svg>
+            <span>GENERATE</span>
+          </button>
+
+          <button type="button" id="id_weather_play_button" onclick="playNewsAudio('id_weather');"
+            class="inline-flex justify-center items-center gap-x-2 rounded-md bg-sky-600 hover:bg-sky-700 px-3 py-2 cursor-pointer text-sm font-semibold text-white shrink-0 shadow-sm disabled">
+            <i id="id_weather_button_play_icon" class="fa-solid fa-play fa-fw"></i>
+            <i id="id_weather_button_pause_icon" class="fa-solid fa-pause fa-fw hidden"></i>
+            <span>PREVIEW</span>
+          </button>
+          <audio id="id_weather_audio"></audio>
+
+          <button type="button" id="id_weather_add_to_playlist_button" onclick="addNewsbedItem('id_weather');"
+            class="inline-flex justify-center items-center gap-x-2 rounded-md bg-teal-600 hover:bg-teal-700 px-3 py-2 cursor-pointer text-sm font-semibold text-white shrink-0 shadow-sm disabled">
+            <i class="fa-solid fa-plus fa-fw"></i> ADD TO PLAYLIST
+          </button>
+        </div>
+
+        <!-- OUTRO -->
+        <div class="input-group pt-3 mb-3">
+          <label for="id_outro" class="input-label mb-1">OUTRO</label>
+          <div class="form-control-box">
+            <input type="text" id="id_outro" name="outro" placeholder="From the newsroom, I'm Ava Summers." class="form-control w-full">
+          </div>
+        </div>
+
+        <div class="flex flex-wrap gap-3 md:gap-4 mb-8">
+          <button type="button" id="id_outro_generate_button" onclick="generateNewsAudio('id_outro');"
+            class="inline-flex justify-center items-center gap-x-2 rounded-md bg-cyan-600 hover:bg-cyan-700 px-3 py-2 cursor-pointer text-sm font-semibold text-white shrink-0 shadow-sm">
+            <i id="id_outro_generate_icon" class="fa-brands fa-creative-commons-sampling fa-fw"></i>
+            <svg id="id_outro_generate_spinner" role="status" class="inline w-4 h-4 text-white animate-spin hidden" viewBox="0 0 100 101"
+              fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path
+                d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+                fill="#E5E7EB" />
+              <path
+                d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+                fill="currentColor" />
+            </svg>
+            <span>GENERATE</span>
+          </button>
+
+          <button type="button" id="id_outro_play_button" onclick="playNewsAudio('id_outro');"
+            class="inline-flex justify-center items-center gap-x-2 rounded-md bg-sky-600 hover:bg-sky-700 px-3 py-2 cursor-pointer text-sm font-semibold text-white shrink-0 shadow-sm disabled">
+            <i id="id_outro_button_play_icon" class="fa-solid fa-play fa-fw"></i>
+            <i id="id_outro_button_pause_icon" class="fa-solid fa-pause fa-fw hidden"></i>
+            <span>PREVIEW</span>
+          </button>
+          <audio id="id_outro_audio"></audio>
+
+          <button type="button" id="id_outro_add_to_playlist_button" onclick="addNewsbedItem('id_outro');"
+            class="inline-flex justify-center items-center gap-x-2 rounded-md bg-teal-600 hover:bg-teal-700 px-3 py-2 cursor-pointer text-sm font-semibold text-white shrink-0 shadow-sm disabled">
+            <i class="fa-solid fa-plus fa-fw"></i> ADD TO PLAYLIST
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="w-full lg:w-1/3 max-h-screen h-screen lg:overflow-y-auto sticky top-20 mb-8">
+    <!-- INTRO NEWSBED -->
+    <div id="id_intro_newsbed_box" class="bg-lighter-gray px-4 py-2 rounded-lg mb-3 hidden">
+      <div class="flex items-center justify-between gap-x-3">
+        <button type="button" onclick="playNewsAudio('id_intro')" class="flex items-center bg-teal-600 rounded-full p-2.5 shrink-0">
+          <i id="id_intro_newsbed_button_play_icon" class="fa-solid fa-play flex items-center justify-center text-base w-5 h-5"></i>
+          <i id="id_intro_newsbed_button_pause_icon"
+            class="fa-solid fa-pause flex items-center justify-center text-base w-5 h-5 hidden"></i>
+        </button>
+        <p class="text-base font-semibold text-white lg:leading-6">Intro</p>
+        <button type="button" onclick="removeNewsbedItem('id_intro');"
+          class="w-7 h-7 text-sm text-red-500 font-semibold flex justify-center items-center shrink-0">
+          <i class="fa-solid fa-trash fa-fw"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- NEWS NEWSBED -->
+    <div id="id_news_script_newsbed_box" class="bg-lighter-gray px-4 py-2 rounded-lg mb-3 hidden">
+      <div class="flex items-center justify-between gap-x-3">
+        <button type="button" onclick="playNewsAudio('id_news_script')" class="flex items-center bg-teal-600 rounded-full p-2.5 shrink-0">
+          <i id="id_news_script_newsbed_button_play_icon" class="fa-solid fa-play flex items-center justify-center text-base w-5 h-5"></i>
+          <i id="id_news_script_newsbed_button_pause_icon"
+            class="fa-solid fa-pause flex items-center justify-center text-base w-5 h-5 hidden"></i>
+        </button>
+        <p class="text-base font-semibold text-white lg:leading-6">News</p>
+        <button type="button" onclick="removeNewsbedItem('id_news_script');"
+          class="w-7 h-7 text-sm text-red-500 font-semibold flex justify-center items-center shrink-0">
+          <i class="fa-solid fa-trash fa-fw"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- NEWS NEWSBED 2 -->
+    <div id="id_news_script_2_newsbed_box" class="bg-lighter-gray px-4 py-2 rounded-lg mb-3 hidden">
+      <div class="flex items-center justify-between gap-x-3">
+        <button type="button" onclick="playNewsAudio('id_news_script_2')" class="flex items-center bg-teal-600 rounded-full p-2.5 shrink-0">
+          <i id="id_news_script_2_newsbed_button_play_icon" class="fa-solid fa-play flex items-center justify-center text-base w-5 h-5"></i>
+          <i id="id_news_script_2_newsbed_button_pause_icon"
+            class="fa-solid fa-pause flex items-center justify-center text-base w-5 h-5 hidden"></i>
+        </button>
+        <p class="text-base font-semibold text-white lg:leading-6">News 2</p>
+        <button type="button" onclick="removeNewsbedItem('id_news_script_2');"
+          class="w-7 h-7 text-sm text-red-500 font-semibold flex justify-center items-center shrink-0">
+          <i class="fa-solid fa-trash fa-fw"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- NEWS NEWSBED 3 -->
+    <div id="id_news_script_3_newsbed_box" class="bg-lighter-gray px-4 py-2 rounded-lg mb-3 hidden">
+      <div class="flex items-center justify-between gap-x-3">
+        <button type="button" onclick="playNewsAudio('id_news_script_3')" class="flex items-center bg-teal-600 rounded-full p-2.5 shrink-0">
+          <i id="id_news_script_3_newsbed_button_play_icon" class="fa-solid fa-play flex items-center justify-center text-base w-5 h-5"></i>
+          <i id="id_news_script_3_newsbed_button_pause_icon"
+            class="fa-solid fa-pause flex items-center justify-center text-base w-5 h-5 hidden"></i>
+        </button>
+        <p class="text-base font-semibold text-white lg:leading-6">News 3</p>
+        <button type="button" onclick="removeNewsbedItem('id_news_script_3');"
+          class="w-7 h-7 text-sm text-red-500 font-semibold flex justify-center items-center shrink-0">
+          <i class="fa-solid fa-trash fa-fw"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- NEWS NEWSBED 4 -->
+    <div id="id_news_script_4_newsbed_box" class="bg-lighter-gray px-4 py-2 rounded-lg mb-3 hidden">
+      <div class="flex items-center justify-between gap-x-3">
+        <button type="button" onclick="playNewsAudio('id_news_script_4')" class="flex items-center bg-teal-600 rounded-full p-2.5 shrink-0">
+          <i id="id_news_script_4_newsbed_button_play_icon" class="fa-solid fa-play flex items-center justify-center text-base w-5 h-5"></i>
+          <i id="id_news_script_4_newsbed_button_pause_icon"
+            class="fa-solid fa-pause flex items-center justify-center text-base w-5 h-5 hidden"></i>
+        </button>
+        <p class="text-base font-semibold text-white lg:leading-6">News 4</p>
+        <button type="button" onclick="removeNewsbedItem('id_news_script_4');"
+          class="w-7 h-7 text-sm text-red-500 font-semibold flex justify-center items-center shrink-0">
+          <i class="fa-solid fa-trash fa-fw"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- NEWS NEWSBED 5 -->
+    <div id="id_news_script_5_newsbed_box" class="bg-lighter-gray px-4 py-2 rounded-lg mb-3 hidden">
+      <div class="flex items-center justify-between gap-x-3">
+        <button type="button" onclick="playNewsAudio('id_news_script_5')" class="flex items-center bg-teal-600 rounded-full p-2.5 shrink-0">
+          <i id="id_news_script_5_newsbed_button_play_icon" class="fa-solid fa-play flex items-center justify-center text-base w-5 h-5"></i>
+          <i id="id_news_script_5_newsbed_button_pause_icon"
+            class="fa-solid fa-pause flex items-center justify-center text-base w-5 h-5 hidden"></i>
+        </button>
+        <p class="text-base font-semibold text-white lg:leading-6">News 5</p>
+        <button type="button" onclick="removeNewsbedItem('id_news_script_5');"
+          class="w-7 h-7 text-sm text-red-500 font-semibold flex justify-center items-center shrink-0">
+          <i class="fa-solid fa-trash fa-fw"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- ENTERTAINMENT NEWSBED -->
+    <div id="id_entertainment_script_newsbed_box" class="bg-lighter-gray px-4 py-2 rounded-lg mb-3 hidden">
+      <div class="flex items-center justify-between gap-x-3">
+        <button type="button" onclick="playNewsAudio('id_entertainment_script')"
+          class="flex items-center bg-teal-600 rounded-full p-2.5 shrink-0">
+          <i id="id_entertainment_script_newsbed_button_play_icon"
+            class="fa-solid fa-play flex items-center justify-center text-base w-5 h-5"></i>
+          <i id="id_entertainment_script_newsbed_button_pause_icon"
+            class="fa-solid fa-pause flex items-center justify-center text-base w-5 h-5 hidden"></i>
+        </button>
+        <p class="text-base font-semibold text-white lg:leading-6">Entertainment</p>
+        <button type="button" onclick="removeNewsbedItem('id_entertainment_script');"
+          class="w-7 h-7 text-sm text-red-500 font-semibold flex justify-center items-center shrink-0">
+          <i class="fa-solid fa-trash fa-fw"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- SPORTS NEWSBED -->
+    <div id="id_sports_script_newsbed_box" class="bg-lighter-gray px-4 py-2 rounded-lg mb-3 hidden">
+      <div class="flex items-center justify-between gap-x-3">
+        <button type="button" onclick="playNewsAudio('id_sports_script')" class="flex items-center bg-teal-600 rounded-full p-2.5 shrink-0">
+          <i id="id_sports_script_newsbed_button_play_icon" class="fa-solid fa-play flex items-center justify-center text-base w-5 h-5"></i>
+          <i id="id_sports_script_newsbed_button_pause_icon"
+            class="fa-solid fa-pause flex items-center justify-center text-base w-5 h-5 hidden"></i>
+        </button>
+        <p class="text-base font-semibold text-white lg:leading-6">Sports</p>
+        <button type="button" onclick="removeNewsbedItem('id_sports_script');"
+          class="w-7 h-7 text-sm text-red-500 font-semibold flex justify-center items-center shrink-0">
+          <i class="fa-solid fa-trash fa-fw"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- WEATHER NEWSBED -->
+    <div id="id_weather_newsbed_box" class="bg-lighter-gray px-4 py-2 rounded-lg mb-3 hidden">
+      <div class="flex items-center justify-between gap-x-3">
+        <button type="button" onclick="playNewsAudio('id_weather')" class="flex items-center bg-teal-600 rounded-full p-2.5 shrink-0">
+          <i id="id_weather_newsbed_button_play_icon" class="fa-solid fa-play flex items-center justify-center text-base w-5 h-5"></i>
+          <i id="id_weather_newsbed_button_pause_icon"
+            class="fa-solid fa-pause flex items-center justify-center text-base w-5 h-5 hidden"></i>
+        </button>
+        <p class="text-base font-semibold text-white lg:leading-6">Weather</p>
+        <button type="button" onclick="removeNewsbedItem('id_weather');"
+          class="w-7 h-7 text-sm text-red-500 font-semibold flex justify-center items-center shrink-0">
+          <i class="fa-solid fa-trash fa-fw"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- OUTRO NEWSBED -->
+    <div id="id_outro_newsbed_box" class="bg-lighter-gray px-4 py-2 rounded-lg mb-3 hidden">
+      <div class="flex items-center justify-between gap-x-3">
+        <button type="button" onclick="playNewsAudio('id_outro')" class="flex items-center bg-teal-600 rounded-full p-2.5 shrink-0">
+          <i id="id_outro_newsbed_button_play_icon" class="fa-solid fa-play flex items-center justify-center text-base w-5 h-5"></i>
+          <i id="id_outro_newsbed_button_pause_icon"
+            class="fa-solid fa-pause flex items-center justify-center text-base w-5 h-5 hidden"></i>
+        </button>
+        <p class="text-base font-semibold text-white lg:leading-6">Outro</p>
+        <button type="button" onclick="removeNewsbedItem('id_outro');"
+          class="w-7 h-7 text-sm text-red-500 font-semibold flex justify-center items-center shrink-0">
+          <i class="fa-solid fa-trash fa-fw"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- EXPORT BOX OPTIONS -->
+    <div class="bg-lighter-gray px-4 py-2 rounded-lg mb-3">
+      <div class="w-full mb-4 md:mb-5">
+        <div class="input-group flex justify-between items-center">
+          <label for="id_newsbed" class="input-label">NEWSBED</label>
+          <div class="form-control-box relative w-4">
+            <input type="checkbox" id="id_newsbed" name="newsbed" checked="checked" />
+          </div>
+        </div>
+      </div>
+
+      <div class="w-full mb-4 md:mb-5">
+        <div class="input-group flex justify-between items-center">
+          <label for="id_weatherbed" class="input-label">WEATHERBED</label>
+          <div class="form-control-box relative w-4">
+            <input type="checkbox" id="id_weatherbed" name="seperator" checked="checked" />
+          </div>
+        </div>
+      </div>
+
+      <div class="w-full mb-4 md:mb-5">
+        <div class="input-group flex justify-between items-center">
+          <label for="id_seperator" class="input-label">SEPERATOR</label>
+          <div class="form-control-box relative w-4">
+            <input type="checkbox" id="id_seperator" name="seperator" checked="checked" />
+          </div>
+        </div>
+      </div>
+
+      <div class="w-full mb-4 md:mb-6">
+        <div class="input-group flex justify-between items-center relative">
+          <label for="id_bulletin_duration" class="input-label">BULLETIN DURATION</label>
+          <input type="number" id="id_bulletin_duration" name="bulletin_duration" class="form-control w-16" />
+        </div>
+      </div>
+
+      <div class="flex items-center justify-center gap-x-3 mb-2">
+        <button id="id_export_audio_button" type="button" class="viveca-primary-button" onclick="exportNewsAudio();">
+          <i id="id_export_audio_icon" class="fa-solid fa-download"></i>
+          <svg id="id_export_audio_spinner" role="status" class="inline w-4 h-4 text-white animate-spin hidden" viewBox="0 0 100 101"
+            fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path
+              d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+              fill="#E5E7EB" />
+            <path
+              d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+              fill="currentColor" />
+          </svg>
+          <span>EXPORT</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- FINAL AUDIO OPTIONS -->
+    <div class="grid grid-cols-2 gap-2">
+      <input type="hidden" id="id_audio_url" name="audio_url" value="" />
+      <button id="id_add_to_playlist_button" type="button" onclick="addNewsToPlaylist();"
+        class="inline-flex justify-center items-center gap-x-2 rounded-md bg-fuchsia-600 hover:bg-fuchsia-700 px-2 py-3 cursor-pointer text-sm font-semibold text-white shrink-0 shadow-sm disabled">
+        <i id="id_add_to_playlist_icon" class="fa-solid fa-download"></i>
+        <svg id="id_add_to_playlist_spinner" role="status" class="inline w-4 h-4 text-white animate-spin hidden" viewBox="0 0 100 101"
+          fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+            fill="#E5E7EB" />
+          <path
+            d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+            fill="currentColor" />
+        </svg>
+        <span>ADD TO PLAYLIST</span>
+      </button>
+
+      <a id="id_save_locally_button" type="button" href="javascript:;" download="news.wav"
+        class="inline-flex justify-center items-center gap-x-2 rounded-md bg-fuchsia-600 hover:bg-fuchsia-700 px-2 py-3 cursor-pointer text-sm font-semibold text-white shrink-0 shadow-sm disabled">
+        <i id="id_save_locally_icon" class="fa-solid fa-download"></i>
+        <svg id="id_save_locally_spinner" role="status" class="inline w-4 h-4 text-white animate-spin hidden" viewBox="0 0 100 101"
+          fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path
+            d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+            fill="#E5E7EB" />
+          <path
+            d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+            fill="currentColor" />
+        </svg>
+        <span>SAVE LOCALLY</span>
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra-scripts %}
+<script type="text/javascript">
+  var entertainment_news = [];
+  var sports_news = [];
+
+  var audioPlayingStates = {
+    id_intro: false,
+    id_news_script: false,
+    id_news_script_2: false,
+    id_news_script_3: false,
+    id_news_script_4: false,
+    id_news_script_5: false,
+    id_entertainment_script: false,
+    id_sports_script: false,
+    id_weather: false,
+    id_outro: false
+  };
+
+  var newsbedStates = {
+    id_intro: false,
+    id_news_script: false,
+    id_news_script_2: false,
+    id_news_script_3: false,
+    id_news_script_4: false,
+    id_news_script_5: false,
+    id_entertainment_script: false,
+    id_sports_script: false,
+    id_weather: false,
+    id_outro: false
+  };
+
+  var scriptPositions = {
+    entertainment_news: 0,
+    sports_news: 0
+  };
+
+  function setAudioPlaying(fieldId, isPlaying) {
+    if (audioPlayingStates.hasOwnProperty(fieldId)) {
+      audioPlayingStates[fieldId] = isPlaying;
+    } else {
+      console.error('Invalid field:', fieldId);
+    }
+  }
+
+  function isAudioPlaying(fieldId) {
+    if (audioPlayingStates.hasOwnProperty(fieldId)) {
+      return audioPlayingStates[fieldId];
+    } else {
+      console.error('Invalid field:', fieldId);
+      return false;
+    }
+  }
+
+  function getNewsbedState(fieldId) {
+    if (newsbedStates.hasOwnProperty(fieldId)) {
+      return newsbedStates[fieldId];
+    } else {
+      console.error('Invalid field:', fieldId);
+      return false;
+    }
+  }
+
+  function setNewsbedState(fieldId, value) {
+    if (newsbedStates.hasOwnProperty(fieldId)) {
+      newsbedStates[fieldId] = value;
+    } else {
+      console.error('Invalid field:', fieldId);
+    }
+  }
+
+  function getNewsScriptPosition(fieldId) {
+    if (scriptPositions.hasOwnProperty(fieldId)) {
+      return scriptPositions[fieldId];
+    } else {
+      console.error('Invalid field:', fieldId);
+      return 0;
+    }
+  }
+
+  function setNewsScriptPosition(fieldId, value) {
+    if (scriptPositions.hasOwnProperty(fieldId)) {
+      scriptPositions[fieldId] = value;
+    } else {
+      console.error('Invalid field:', fieldId);
+    }
+  }
+
+  function enableGenerateNewsButton() {
+    $('#id_generate_news_button').removeClass('disabled');
+    $('#id_generate_news_icon').removeClass('hidden');
+    $('#id_generate_news_spinner').addClass('hidden');
+  }
+
+  function generateNewsAi() {
+    $('#id_generate_news_button').addClass('disabled');
+    $('#id_generate_news_icon').addClass('hidden');
+    $('#id_generate_news_spinner').removeClass('hidden');
+    $.ajax({
+      data: $("#generateNewsForm").serialize(),
+      type: 'POST',
+      url: $('#generateNewsForm').attr('action'),
+      success: function (data) {
+        if (data.status == true) {
+          $('#generateNewsFormBox').html(data.form);
+          fillManualForm(data.response);
+        } else {
+          $('#generateNewsFormBox').html(data.form);
+        }
+        enableGenerateNewsButton();
+      },
+      error: function (e) {
+        enableGenerateNewsButton();
+        alert('error');
+      }
+    });
+  }
+
+  function addAudioEventListener(fieldId) {
+    $('#' + fieldId + '_audio').on('ended', function () {
+      $('#' + fieldId + '_button_play_icon').removeClass('hidden');
+      $('#' + fieldId + '_button_pause_icon').addClass('hidden');
+      $('#' + fieldId + '_newsbed_button_play_icon').removeClass('hidden');
+      $('#' + fieldId + '_newsbed_button_pause_icon').addClass('hidden');
+      setAudioPlaying(fieldId, false);
+    });
+  }
+
+  function playNewsAudio(fieldId) {
+    var audio = $('#' + fieldId + '_audio')[0];
+    if (isAudioPlaying(fieldId)) {
+      audio.pause();
+      $('#' + fieldId + '_button_play_icon').removeClass('hidden');
+      $('#' + fieldId + '_button_pause_icon').addClass('hidden');
+      $('#' + fieldId + '_newsbed_button_play_icon').removeClass('hidden');
+      $('#' + fieldId + '_newsbed_button_pause_icon').addClass('hidden');
+      setAudioPlaying(fieldId, false);
+    } else {
+      audio.play();
+      $('#' + fieldId + '_button_play_icon').addClass('hidden');
+      $('#' + fieldId + '_button_pause_icon').removeClass('hidden');
+      $('#' + fieldId + '_newsbed_button_play_icon').addClass('hidden');
+      $('#' + fieldId + '_newsbed_button_pause_icon').removeClass('hidden');
+      setAudioPlaying(fieldId, true);
+    }
+  }
+
+  function onSuccessfulAudioGenerated(fieldId) {
+    $('#' + fieldId + '_play_button').removeClass('disabled');
+    $('#' + fieldId + '_play_button').removeClass('disabled');
+    $('#' + fieldId + '_generate_icon').removeClass('hidden');
+    $('#' + fieldId + '_generate_spinner').addClass('hidden');
+    $('#' + fieldId + '_button_play_icon').addClass('hidden');
+    $('#' + fieldId + '_button_pause_icon').removeClass('hidden');
+    $('#' + fieldId + '_add_to_playlist_button').removeClass('disabled');
+  }
+
+  function generateNewsAudio(fieldId) {
+    const data = {
+      "text": $('#' + fieldId).val(),
+      "voice_code": $('#id_manual_voice').val()
+    }
+    if (data.text == '') {
+      alert('Please enter some text to generate audio!');
+      return;
+    }
+    $('#' + fieldId + '_generate_button').addClass('disabled');
+    $('#' + fieldId + '_generate_icon').addClass('hidden');
+    $('#' + fieldId + '_generate_spinner').removeClass('hidden');
+    $.ajax({
+      data: data,
+      type: 'POST',
+      url: "{% url 'news_generate_news_audio' %}",
+      success: function (data) {
+        if (data.status == true) {
+          $('#' + fieldId + '_audio').attr('src', data.audio_url);
+          addAudioEventListener(fieldId);
+          playNewsAudio(fieldId);
+          onSuccessfulAudioGenerated(fieldId);
+        } else {
+          alert('Issue in the audio generation response!');
+        }
+        $('#' + fieldId + '_generate_button').removeClass('disabled');
+        $('#' + fieldId + '_generate_icon').removeClass('hidden');
+        $('#' + fieldId + '_generate_spinner').addClass('hidden');
+      },
+      error: function (e) {
+        $('#' + fieldId + '_generate_button').removeClass('disabled');
+        $('#' + fieldId + '_generate_icon').removeClass('hidden');
+        $('#' + fieldId + '_generate_spinner').addClass('hidden');
+        alert('Issue occurred while generating audio!');
+      }
+    });
+  }
+
+  function addNewsbedItem(fieldId) {
+    $('#' + fieldId + '_newsbed_box').removeClass('hidden');
+    setNewsbedState(fieldId, true);
+  }
+
+  function removeNewsbedItem(fieldId) {
+    $('#' + fieldId + '_newsbed_box').addClass('hidden');
+    setNewsbedState(fieldId, false);
+  }
+
+  function fillManualForm(response) {
+    this.entertainment_news = response.entertainment_news;
+    this.sports_news = response.sports_news;
+
+    $('#id_manual_voice').val($('#id_voice_code').val());
+    $('#id_intro').val(response.intro);
+    $('#id_news_script').val(response.nation_news[0]);
+    if (response.nation_news.length > 1) {
+      for (let i = 1; i < response.nation_news.length; i++) {
+        $('#id_news_script_' + (i + 1)).val(response.nation_news[i]);
+        $('#id_news_script_' + (i + 1) + '_group').removeClass('hidden');
+      }
+    }
+    $('#id_entertainment_script').val(response.entertainment_news[0]);
+    if (response.entertainment_news.length > 1) {
+      $('#id_entertainment_script_previous').removeClass('hidden');
+      $('#id_entertainment_script_next').removeClass('hidden');
+    }
+    $('#id_sports_script').val(response.sports_news[0]);
+    if (response.sports_news.length > 1) {
+      $('#id_sports_script_previous').removeClass('hidden');
+      $('#id_sports_script_next').removeClass('hidden');
+    }
+    $('#id_weather').val(response.weather_script);
+    $('#id_outro').val(response.outro);
+  }
+
+  function previous_suggestion(fieldId) {
+    let current_index = getNewsScriptPosition(fieldId);
+    if (current_index == 0) {
+      return;
+    }
+    let new_index = current_index - 1;
+    if (fieldId == 'entertainment_news') {
+      setNewsScriptPosition(fieldId, new_index);
+      $('#id_entertainment_script').val(this.entertainment_news[new_index]);
+      $('#id_entertainment_script_next').removeClass('disabled');
+      if (new_index == 0) {
+        $('#id_entertainment_script_previous').addClass('disabled');
+      }
+    } else if (fieldId == 'sports_news') {
+      setNewsScriptPosition(fieldId, new_index);
+      $('#id_sports_script').val(this.sports_news[new_index]);
+      $('#id_sports_script_next').removeClass('disabled');
+      if (new_index == 0) {
+        $('#id_sports_script_previous').addClass('disabled');
+      }
+    }
+  }
+
+  function next_suggestion(fieldId) {
+    let current_index = getNewsScriptPosition(fieldId);
+    let new_index = current_index + 1;
+    if (fieldId == 'entertainment_news') {
+      if (current_index < this.entertainment_news.length - 1) {
+        setNewsScriptPosition(fieldId, new_index);
+        $('#id_entertainment_script').val(this.entertainment_news[new_index]);
+        $('#id_entertainment_script_previous').removeClass('disabled');
+        if (new_index == this.entertainment_news.length - 1) {
+          $('#id_entertainment_script_next').addClass('disabled');
+        }
+      }
+    } else if (fieldId == 'sports_news') {
+      if (current_index < this.sports_news.length - 1) {
+        setNewsScriptPosition(fieldId, new_index);
+        $('#id_sports_script').val(this.sports_news[new_index]);
+        $('#id_sports_script_previous').removeClass('disabled');
+        if (new_index == this.sports_news.length - 1) {
+          $('#id_sports_script_next').addClass('disabled');
+        }
+      }
+    }
+  }
+
+  function exportNewsAudio() {
+    if (
+      getNewsbedState("id_intro") == false &&
+      getNewsbedState("id_news_script") == false &&
+      getNewsbedState("id_news_script_2") == false &&
+      getNewsbedState("id_news_script_3") == false &&
+      getNewsbedState("id_news_script_4") == false &&
+      getNewsbedState("id_news_script_5") == false &&
+      getNewsbedState("id_entertainment_script") == false &&
+      getNewsbedState("id_sports_script") == false &&
+      getNewsbedState("id_weather") == false &&
+      getNewsbedState("id_outro") == false
+    ) {
+      alert('Please add audio items to the list first!');
+      return;
+    }
+    $('#id_export_audio_button').addClass('disabled');
+    $('#id_export_audio_icon').addClass('hidden');
+    $('#id_export_audio_spinner').removeClass('hidden');
+    const data = {
+      "newsbed": $('#id_newsbed').is(':checked'),
+      "weatherbed": $('#id_weatherbed').is(':checked'),
+      "seperator": $('#id_seperator').is(':checked'),
+      "bulletin_duration": $('#id_bulletin_duration').val()
+    }
+    if (getNewsbedState("id_intro")) {
+      data['intro'] = $('#id_intro_audio').attr('src');
+    }
+    if (getNewsbedState("id_news_script")) {
+      data['news'] = $('#id_news_script_audio').attr('src');
+    }
+    if (getNewsbedState("id_news_script_2")) {
+      data['news_2'] = $('#id_news_script_2_audio').attr('src');
+    }
+    if (getNewsbedState("id_news_script_3")) {
+      data['news_3'] = $('#id_news_script_3_audio').attr('src');
+    }
+    if (getNewsbedState("id_news_script_4")) {
+      data['news_4'] = $('#id_news_script_4_audio').attr('src');
+    }
+    if (getNewsbedState("id_news_script_5")) {
+      data['news_5'] = $('#id_news_script_5_audio').attr('src');
+    }
+    if (getNewsbedState("id_entertainment_script")) {
+      data['entertainment'] = $('#id_entertainment_script_audio').attr('src');
+    }
+    if (getNewsbedState("id_sports_script")) {
+      data['sports'] = $('#id_sports_script_audio').attr('src');
+    }
+    if (getNewsbedState("id_weather")) {
+      data['weather'] = $('#id_weather_audio').attr('src');
+    }
+    if (getNewsbedState("id_outro")) {
+      data['outro'] = $('#id_outro_audio').attr('src');
+    }
+    $.ajax({
+      data: data,
+      type: 'POST',
+      url: "{% url 'news_export_news_audio' %}",
+      success: function (data) {
+        if (data.status == true) {
+          $('#id_audio_url').val(data.audio_url);
+          $('#id_save_locally_button').attr('href', data.audio_url);
+          $('#id_save_locally_button').removeClass('disabled');
+          $('#id_add_to_playlist_button').removeClass('disabled');
+        } else {
+          alert('Issue in the audio generation response!');
+        }
+        $('#id_export_audio_button').removeClass('disabled');
+        $('#id_export_audio_icon').removeClass('hidden');
+        $('#id_export_audio_spinner').addClass('hidden');
+      },
+      error: function (e) {
+        $('#id_export_audio_button').removeClass('disabled');
+        $('#id_export_audio_icon').removeClass('hidden');
+        $('#id_export_audio_spinner').addClass('hidden');
+        alert('Issue occurred while generating audio!');
+      }
+    });
+  }
+
+  function addNewsToPlaylist() {
+    $('#id_add_to_playlist_button').addClass('disabled');
+    $('#id_add_to_playlist_icon').addClass('hidden');
+    $('#id_add_to_playlist_spinner').removeClass('hidden');
+    const data = {
+      "audio_url": $('#id_audio_url').val(),
+      "type": 'library'
+    };
+    $.ajax({
+      data: data,
+      type: 'POST',
+      url: "{% url 'news_add_news_to_playlist' %}",
+      success: function (data) {
+        $('#id_add_to_playlist_button').removeClass('disabled');
+        $('#id_add_to_playlist_icon').removeClass('hidden');
+        $('#id_add_to_playlist_spinner').addClass('hidden');
+        if (data.issue) {
+          alert(data.issue);
+        }
+      },
+      error: function (e) {
+        $('#id_add_to_playlist_button').removeClass('disabled');
+        $('#id_add_to_playlist_icon').removeClass('hidden');
+        $('#id_add_to_playlist_spinner').addClass('hidden');
+      }
+    });
+  }
+</script>
+{% endblock %}

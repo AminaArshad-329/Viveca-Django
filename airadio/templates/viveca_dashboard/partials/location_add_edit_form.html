@@ -1,0 +1,42 @@
+<form id="IDlocationForm" method="post" role="form"
+  action="{% if location %}{% url 'viveca_dashboard_location_edit' location.id %}{% else %}{% url 'viveca_dashboard_setting_location_add' %}{% endif %}">
+  {% csrf_token %}
+  <div class="horizontal-input-group {% if form.location_country.errors %}has-error{% endif %}">
+    <label for="inputPassword3" class="input-label">COUNTRY <span class="text-red-500">*</span></label>
+    <div class="form-control-box">
+      <input type="text" name="location_country" value="{{ form.location_country.value|default:'' }}" class="form-control">
+      {% if form.location_country.errors %}<span class="help-text">{{ form.location_country.errors }}</span>{% endif %}
+    </div>
+  </div>
+
+  <div class="horizontal-input-group {% if form.location_state.errors %}has-error{% endif %}">
+    <label for="inputPassword3" class="input-label">STATE <span class="text-red-500">*</span></label>
+    <div class="form-control-box">
+      <input type="text" name="location_state" value="{{ form.location_state.value|default:'' }}" class="form-control" />
+      {% if form.location_state.errors %}<span class="help-text">{{ form.location_state.errors }}</span>{% endif %}
+    </div>
+  </div>
+  <div class="horizontal-input-group {% if form.location_city.errors %}has-error{% endif %}">
+    <label for="inputPassword3" class="input-label">CITY <span class="text-red-500">*</span></label>
+    <div class="form-control-box">
+      <input type="text" name="location_city" value="{{ form.location_city.value|default:'' }}" class="form-control" />
+      {% if form.location_city.errors %}<span class="help-text">{{ form.location_city.errors }}</span>{% endif %}
+    </div>
+  </div>
+
+  <div class="horizontal-input-group {% if form.location_lat.errors %}has-error{% endif %}">
+    <label for="inputPassword3" class="input-label">LATITUDE <span class="text-red-500">*</span></label>
+    <div class="form-control-box">
+      <input type="text" name="location_lat" value="{{ form.location_lat.value|default:'' }}" class="form-control" />
+      {% if form.location_lat.errors %}<span class="help-text">{{ form.location_lat.errors }}</span>{% endif %}
+    </div>
+  </div>
+
+  <div class="horizontal-input-group {% if form.location_long.errors %}has-error{% endif %}">
+    <label for="inputPassword3" class="input-label">LONGITUDE <span class="text-red-500">*</span></label>
+    <div class="form-control-box">
+      <input type="text" name="location_long" value="{{ form.location_long.value|default:'' }}" class="form-control" />
+      {% if form.location_long.errors %}<span class="help-text">{{ form.location_long.errors }}</span>{% endif %}
+    </div>
+  </div>
+</form>

@@ -1,0 +1,26 @@
+{% for track in tracks %}
+<tr>
+  <td class="relative input-group px-7 sm:w-12 sm:px-6">
+    <input type="checkbox" name="tracks" value="{{ track.id }}" class="checkbox-input"/>
+    <input type="hidden" name="id" value="{{ track.id }}">
+  </td>
+  <td class="px-3 py-4 text-sm text-white">{{ track.title }}</td>
+  <td class="px-3 py-4 text-sm text-white">{{ track.aux_point }}</td>
+  <td class="px-3 py-4 text-sm text-white">{{ track.media.url }}</td>
+  <td class="px-3 py-4 text-sm text-white">{{ track.in_point }}</td>
+  <td class="px-3 py-4 text-sm text-white">{{ track.dj.user }}</td>
+  <td class="px-3 py-4 text-sm text-white">{% if track.cover_art %}<img src="{{ track.cover_art.url }}" width="50" height="50">{% else %}-{% endif %}</td>
+  <td class="text-center px-3 py-4 text-sm text-white">
+    <div id="{{ track.media.url }}" data-inpoint="{{ track.media.in_point }}" class="CrbUI_AudioButton"></div>
+  </td>
+  <td class="relative input-group px-7 sm:w-12 sm:px-6">
+    <input {% if track.published %}checked{% endif %} type="checkbox" name="published" value="{{ track.id }}" class="checkbox-input"/>
+  </td>
+</tr>
+{% empty %}
+<tr class="odd">
+  <td class="text-base text-center text-white font-semibold px-3 pt-6 lg:pt-8" valign="center" colspan="9" class="dataTables_empty">
+    No records found
+  </td>
+</tr>
+{% endfor %}

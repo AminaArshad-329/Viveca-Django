@@ -1,0 +1,384 @@
+{% extends "base.html" %}
+
+{% load static radio_tags el_pagination_tags %}
+
+{% block title %}Schedule{% endblock %}
+{% block navbar_title %}SCHEDULE{% endblock %}
+
+{% block content %}
+
+<div class="grid md:grid-cols-2 overflow-hidden rounded-2xl gap-1 mb-4">
+  <div class="bg-lighter-gray p-4">
+    <h2 class="text-lg font-semibold leading-6 text-white mb-6">SCHEDULE</h2>
+
+    <div id="schedule_form" class="white_mis">
+      {% include 'viveca_dashboard/partials/schedule_add_edit_form.html' with form=schedule_form %}
+    </div>
+  </div>
+
+  <div class="bg-lighter-gray p-4">
+    <h2 class="text-lg font-semibold leading-6 text-white mb-6">BRANDING</h2>
+
+    <div class="relative inline-block mb-6">
+      <div>
+        <button type="button" data-dropdown-toggle="branding_tools_dropdown" class="viveca-primary-button" id="menu-button"
+          aria-expanded="true" aria-haspopup="true">
+          <i class="fa-solid fa-gear fa-fw"></i>
+          TOOLS
+          <i class="fa-solid fa-angle-down"></i>
+        </button>
+      </div>
+      <div
+        class="viveca-dropdown-box"
+        id="branding_tools_dropdown" role="menu" aria-orientation="vertical" aria-labelledby="menu-button" tabindex="-1">
+        <div class="py-1" role="none">
+          <a href="javascript:;" onclick="addBrandingPopup();" class="viveca-dropdown-item" role="menuitem" tabindex="-1">
+            <i class="fa-solid fa-plus fa-fw"></i> Add
+          </a>
+          <button type="button" id="add_branding_modal_btn" data-modal-target="add_branding_modal" data-modal-toggle="add_branding_modal" class="hidden" role="menuitem" tabindex="-1"></button>
+          <a href="javascript:;" onclick="editBrandingTohPopup();" class="viveca-dropdown-item" role="menuitem" tabindex="-1">
+            <i class="fa-solid fa-pencil fa-fw"></i> Edit
+          </a>
+          <a href="javascript:;" onclick="deleteBrandingTohs();" class="viveca-dropdown-item" role="menuitem" tabindex="-1">
+            <i class="fa-solid fa-trash fa-fw"></i> Delete
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex mb-6">
+      <div class="inline-block input-group">
+        <label for="id_location" class="input-label mb-1">PLAYLIST LOCATION</label>
+        {{ station_location_form.location }}
+      </div>
+
+      <div class="inline-block input-group ml-6">
+        <label for="id_station" class="input-label mb-1">SELECT STATION</label>
+        {{ station_location_form.station }}
+      </div>
+    </div>
+
+    <form id="BrandingTohForm" action="." method="post">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="delete-tohs">
+      
+      {% if brandingtohs %}
+      <div class="bg-main-gray rounded-xl overflow-x-scroll">
+        <div class="inline-block min-w-full py-2 align-middle">
+          <table id="mytable" class="min-w-full divide-y divide-separator-gray">
+            <thead>
+              <th scope="col" class="relative input-group px-7 sm:w-12 sm:px-6">
+                <input type="checkbox" id="check-all" class="checkbox-input" />
+              </th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white">TITLE</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white">PREVIEW</th>
+            </thead>
+
+            <tbody class="divide-y divide-separator-gray">
+              {% for item in brandingtohs %}
+              <tr>
+                <td class="relative input-group px-7 sm:w-12 sm:px-6">
+                  <input type="checkbox" name="tohs" value="{{ item.id }}" class="checkbox-input" />
+                </td>
+                <td class="px-3 py-4 text-sm text-white">{{ item.title }}</td>
+                <td class="text-center px-3 py-4 text-sm text-white">
+                  <div id="{{ item.media }}" data-inpoint="{{ item.in_point }}" class="CrbUI_AudioButton"></div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% endif %}
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block modal %}
+<div id="add_branding_modal" tabindex="-1" aria-hidden="true"
+  class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-[51] justify-center items-center w-full md:inset-0 h-[calc(100%-2rem)] md:h-[calc(100%-4rem)] max-h-full pointer-events-none">
+  <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+
+  <div class="relative px-4 lg:pl-20 pt-16 w-full max-w-2xl max-h-full">
+    <!-- Modal content -->
+    <div class="relative bg-lighter-gray rounded-lg shadow pointer-events-auto">
+      <!-- Modal header -->
+      <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t">
+        <h3 class="text-xl font-semibold text-white">
+          ADD/EDIT SCHEDULE ITEM
+        </h3>
+        <button type="button" data-modal-hide="add_branding_modal"
+          class="text-gray-100 bg-transparent hover:bg-main-gray hover:text-white rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center">
+          <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+          </svg>
+          <span class="sr-only">Close modal</span>
+        </button>
+      </div>
+      <!-- Modal body -->
+      <div class="p-4 md:p-5 space-y-4" id="library_form">
+        <div id="branding_toh_form" class="modal-body">
+          {% include 'viveca_dashboard/partials/brandingtoh_add_edit_form.html' with form=brandingtoh_form %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra-scripts %}
+<script src="{% static 'CrbUI/audio/button/js/modernizr.js' %}" type="text/javascript"></script>
+<script src="{% static 'CrbUI/audio/button/js/swfobject.js' %}" type="text/javascript"></script>
+<script src="{% static 'CrbUI/audio/button/js/CrbUI_AudioButton-0.74.js' %}" type="text/javascript"></script>
+
+<script src="https://unpkg.com/wavesurfer.js@7"></script>
+<script src="https://unpkg.com/wavesurfer.js@7/dist/plugins/regions.min.js"></script>
+<script src="{% static 'js/wavesurfer_methods.js' %}" type="text/javascript"></script>
+
+<script type="text/javascript">
+  $(document).ready(function (e) {
+    $("#id_station").val("{{request.GET.station_ref}}");
+    $("#id_location").val("{{request.GET.location_ref}}");
+    CrbUI_AP.render();
+    bindStationChange();
+    bindMediaUpload();
+
+    $('#check-all').click(function () {
+      var $this = $(this);
+      if ($this.is(':checked')) {
+        $("#BrandingTohForm input[type=checkbox]").each(function () {
+          $(this).prop("checked", true);
+        });
+      } else {
+        $("#BrandingTohForm input[type=checkbox]").each(function () {
+          $(this).prop("checked", false);
+        });
+      }
+    });
+    
+    $('#id_location').on('change', function (e) {
+      if ($("#id_station").val() != null) {
+        window.location.href = '{{ request.path }}' + '?station_ref=' + $('#id_station').val() + '&location_ref=' + $(this).val();
+      }
+    });
+  
+    $('#id_station').on('change', function (e) {
+      if ($("#id_location").val() == null) {
+        alert('Please select a location first.')
+      } else {
+        window.location.href = '{{ request.path }}' + '?station_ref=' + $(this).val() + '&location_ref=' + $('#id_location').val();
+      }
+    });
+  });
+
+  function bindStationChange() {
+    $('#id_related_station').on('change', function (e) {
+      var value = $(this).val();
+      $.ajax({
+        data: {
+          'related_station': value
+        },
+        type: 'post',
+        url: "{% url 'viveca_dashboard_schedule_ajax' %}",
+        success: function (data) {
+          if (data.status == true) {
+            $('#schedule_form').html(data.html);
+            bindStationChange();
+          }
+        },
+        error: function (e) {
+          alert('error');
+        }
+      });
+    });
+  }
+
+  function AddSchedule() {
+    $.ajax({
+      data: $('#scheduleForm').serialize(),
+      type: 'post',
+      url: $('#scheduleForm').attr('action'),
+      success: function (data) {
+        if (data.status == true) {
+          window.location.href = "{% url 'viveca_dashboard_schedule' %}";
+        } else {
+          $('#schedule_form').html(data.html);
+        }
+      },
+      error: function (e) {
+        alert('error');
+      }
+    });
+  }
+
+  function bindMediaUpload() {
+    $('#media-field').on('change', function (event) {
+      event.stopPropagation(); // Stop stuff happening
+      event.preventDefault(); // Totally stop stuff happening
+      var data = new FormData();
+      var file = document.getElementById("media-field");
+      data.append("image", file.files[0]);
+      data.append("type", 'schedule');
+      $('#media_upload_loading').show();
+      $.ajax({
+        url: "{% url 'viveca_dashboard_upload_media' %}",
+        type: 'POST',
+        data: data,
+        cache: false,
+        dataType: 'json',
+        processData: false, // Don't process the files
+        contentType: false,
+        success: function (data) {
+          $('#id_media').val(data.media);
+          $('#mmi_audio_player').html(data.audio);
+          $('#media_upload_loading').hide();
+          if (wavesurfer==null) {
+            createWaveform();
+          }
+        }, error: function (e) {
+          $('#media_upload_loading').hide();
+        }
+      });
+    });
+  }
+
+  function loadInitialMarkers() {
+    let markers = [
+      {"markerId": "id_in_point", "label": "IN"},
+      {"markerId": "id_aux_point", "label": "AUX"},
+    ];
+    markers.forEach((marker) => setMarkerFromInput(marker['markerId'], marker['label']));
+  }
+
+  function addBrandingPopup() {
+    var station = $('#id_station').val();
+    var location = $('#id_location').val();
+
+    if (station == '' || station == null) {
+      var error = 'This field is required.';
+      if (station == '') {
+        $('#id_station').closest('td').find('span').text(error).show();
+      }
+      alert('You must select a station.');
+    } else {
+      resetForm();
+      $('#IDstation').val(station);
+      $('#IDlocation').val(location);
+      $('#add_branding_modal_btn').click();
+      bindMediaUpload();
+      createWaveform();
+    }
+  }
+
+  function editBrandingTohPopup() {
+    var len = $("#BrandingTohForm input[type=checkbox]:checked").length;
+    if (len > 1) {
+      alert('You must select only a single item to edit.');
+    }
+    if (len == 0) {
+      alert('Please select an item from the list to edit.');
+    }
+
+    if (len == 1) {
+      $.ajax({
+        data: $("#BrandingTohForm").serialize(),
+        type: 'post',
+        url: "{% url 'viveca_dashboard_edit_schedule_branding_toh_popup' %}",
+        success: function (data) {
+          if (data.status == true) {
+            $('#branding_toh_form').html(data.html);
+            $('#add_branding_modal_btn').click();
+            $('#points-field').keyup();
+            bindMediaUpload();
+            createWaveform();
+          }
+        },
+        error: function (e) {
+          alert('error');
+        }
+      });
+    }
+  }
+
+  function deleteBrandingTohs() {
+    var len = $("#BrandingTohForm input[type=checkbox]:checked").length;
+    if (len == 0) {
+      alert('Please select an item from the list to delete.');
+    } else {
+      if (confirm('Are you sure you want to delete the selected items?')) {
+        $("#BrandingTohForm").submit();
+      }
+    }
+  }
+
+  function AddBranding() {
+    var data = $('input[name!=skip_allowed]', '#brandingForm').serialize();
+    if ($("#id_skip_allowed").is(":checked")) {
+      data = data + '&skip_allowed=' + true;
+    } else {
+      data = data + '&skip_allowed=' + false;
+    }
+    var url = '{{ request.path }}' + '?station_ref=' + '{{request.GET.station_ref}}' + '&location_ref=' + '{{request.GET.location_ref}}';
+    $.ajax({
+      data: data,
+      type: 'post',
+      url: $('#brandingForm').attr('action'),
+      success: function (data) {
+        if (data.status == true) {
+          window.location.href = url;
+        } else {
+          $('#branding_toh_form').html(data.html);
+          bindMediaUpload();
+          createWaveform();
+        }
+      },
+      error: function (e) {
+        alert('error');
+      }
+    });
+  }
+
+  function changeRatingStars(val, element) {
+    var stars = 0;
+    if (val > 0 && val < 26) {
+      stars = 1;
+    }
+    if (val > 25 && val < 51) {
+      stars = 2;
+    }
+    if (val > 50 && val < 76) {
+      stars = 3;
+    }
+    if (val > 75 && val < 101) {
+      stars = 4;
+    }
+    if (val > 100) {
+      stars = 5;
+    }
+    if (val < 1 || val == '') {
+      stars = 0;
+    }
+    $(element).find(".fa-star").each(function (index) {
+      if (index < stars) {
+        $(this).addClass("text-amber-500");
+        $(this).removeClass("text-white");
+      } else {
+        $(this).addClass("text-white");
+        $(this).removeClass("text-amber-500");
+      }
+    });
+  }
+
+  function resetForm() {
+    $("#brandingForm").attr('action', "{% url 'viveca_dashboard_add_schedule_branding_toh' %}");
+    $("#brandingForm :input").each(function () {
+      $(this).val('');
+    });
+    $('#mmi_audio_player').html('');
+    changeRatingStars(0, '#pointStars');
+  }
+</script>
+{% endblock %}

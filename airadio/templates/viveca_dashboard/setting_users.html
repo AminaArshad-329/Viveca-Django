@@ -1,0 +1,239 @@
+{% extends "base.html" %}
+
+{% load radio_tags el_pagination_tags %}
+
+{% block title %}User Settings{% endblock %}
+{% block navbar_title %}USER SETTINGS{% endblock %}
+
+{% block content %}
+
+<div class="overflow-hidden rounded-2xl mb-4">
+  <div class="bg-lighter-gray p-4">
+    <h2 class="text-lg font-semibold leading-6 text-white mb-6">USERS LIST</h2>
+
+    <div class="flex flex-col md:flex-row md:justify-between">
+      <div class="w-full max-w-96">
+        <div class="w-full max-w-96 flex rounded-md shadow-sm mb-6">
+          <div class="relative flex flex-grow items-stretch focus-within:z-10">
+            <input type="text" name="users_search_input" id="users_search_input" autocomplete="off"
+            class="block w-full rounded-none rounded-l-md border-0 py-1.5 sm:text-sm sm:leading-6 bg-main-gray text-white placeholder-gray-400 ring-1 ring-inset ring-separator-gray focus:ring-1 focus:ring-inset focus:ring-ring-gray"
+            placeholder="Search">
+          </div>
+          <button type="button" class="relative -ml-px inline-flex items-center gap-x-1.5 rounded-r-md px-3 py-2 text-sm font-semibold text-white ring-1 ring-inset ring-separator-gray bg-main-gray hover:bg-dark-gray">
+            <i class="fa-solid fa-magnifying-glass"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="relative inline-block text-left mb-6">
+        <div>
+          <button type="button" data-dropdown-toggle="users_tools_dropdown"
+            class="viveca-primary-button"
+            id="menu-button" aria-expanded="true" aria-haspopup="true">
+            <i class="fa-solid fa-gear fa-fw"></i>
+            TOOLS
+            <i class="fa-solid fa-angle-down"></i>
+          </button>
+        </div>
+        <div
+          class="viveca-dropdown-box"
+          id="users_tools_dropdown" role="menu" aria-orientation="vertical" aria-labelledby="menu-button" tabindex="-1">
+          <div class="py-1" role="none">
+            <a href="javascript:;" onclick="resetForm();" data-modal-target="add_new_user_modal" data-modal-toggle="add_new_user_modal" class="viveca-dropdown-item" role="menuitem" tabindex="-1">
+              <i class="fa-solid fa-plus fa-fw"></i> Add
+            </a>
+            <a href="javascript:;" onclick="editUserPopup();" class="viveca-dropdown-item" role="menuitem" tabindex="-1">
+              <i class="fa-solid fa-pencil fa-fw"></i> Edit
+            </a>
+            <button type="button" id="add_new_user_modal_btn" data-modal-target="add_new_user_modal" data-modal-toggle="add_new_user_modal" class="hidden" role="menuitem" tabindex="-1"></button>
+            <a href="{{ request.path }}?show=dj" class="viveca-dropdown-item" role="menuitem" tabindex="-1">
+              <i class="fa-solid fa-headphones fa-fw"></i> DJ Users
+            </a>
+            <a href="javascript:;" onclick="document.userlistForm.submit();" class="viveca-dropdown-item" role="menuitem" tabindex="-1">
+              <i class="fa-solid fa-trash fa-fw"></i> Delete
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <form id="userlistID" name="userlistForm" action="." method="post">
+      {% csrf_token %}
+
+      {% paginate 10 users %}
+
+      <div class="bg-main-gray pb-4 rounded-xl overflow-x-scroll">
+        <div class="inline-block min-w-full py-2 align-middle">
+          <table id="mytable" class="min-w-full divide-y divide-separator-gray">
+            <thead>
+              <th scope="col" class="relative input-group px-7 sm:w-12 sm:px-6">
+                <input type="checkbox" id="check-all" class="checkbox-input"/>
+              </th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white">USERNAME</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white">AVATAR</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white">FOLLOWERS</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white">EMAIL VERFIED</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white">EMAIL</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white">IS ACTIVE</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white">PASSWORD</th>
+            </thead>
+
+            <tbody id="table_search_results" class="divide-y divide-separator-gray">
+              {% include 'viveca_dashboard/partials/setting_user_search.html' %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% show_pages %}
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block modal %}
+<div style="display:none" id="add-user-PASSWORDS">
+  <div class="horizontal-input-group">
+    <label for="password1" class="input-label">PASSWORD</label>
+    <div class="form-control-box">
+      <input type="password" name="password1" autocomplete="new-password" class="form-control" />
+    </div>
+  </div>
+
+  <div class="horizontal-input-group">
+    <label for="password2" class="input-label">CONFIRM PASSWORD</label>
+    <div class="form-control-box">
+      <input type="password" name="password2" autocomplete="new-password" class="form-control" />
+    </div>
+  </div>
+</div>
+
+<div id="add_new_user_modal" tabindex="-1" aria-hidden="true"
+  class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-[51] justify-center items-center w-full md:inset-0 h-[calc(100%-2rem)] md:h-[calc(100%-4rem)] max-h-full pointer-events-none">
+  <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+
+  <div class="relative px-4 lg:pl-20 pt-16 w-full max-w-2xl max-h-full">
+    <!-- Modal content -->
+    <div class="relative bg-lighter-gray rounded-lg shadow pointer-events-auto">
+      <!-- Modal header -->
+      <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t">
+        <h3 class="text-xl font-semibold text-white">
+          ADD/EDIT USER
+        </h3>
+        <button type="button" data-modal-hide="add_new_user_modal"
+          class="text-gray-100 bg-transparent hover:bg-main-gray hover:text-white rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center">
+          <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+          </svg>
+          <span class="sr-only">Close modal</span>
+        </button>
+      </div>
+      <!-- Modal body -->
+      <div class="p-4 md:p-5 space-y-4">
+        <div id="user_form">
+          {% include 'viveca_dashboard/partials/user_creation_form.html' with form=user_form %}
+        </div>
+
+        <div class="flex justify-center py-6">
+          <button type="button" class="viveca-primary-button" onclick="AddUser();">
+            <i class="fa-solid fa-circle-check fa-fw"></i> <span>ADD USER</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra-scripts %}
+<script type="text/javascript">
+  $(document).ready(function () {
+    $('#check-all').click(function () {
+      var $this = $(this);
+      if ($this.is(':checked')) {
+        $("#userlistID input[type=checkbox]").each(function () {
+          $(this).prop("checked", true);
+        });
+      } else {
+        $("#userlistID input[type=checkbox]").each(function () {
+          $(this).prop("checked", false);
+        });
+      }
+    });
+  });
+
+  $('#users_search_input').keyup(function (e) {
+    var q = $(this).val();
+    $.ajax({
+      data: {
+        'q': q,
+        'show': '{{request.GET.show}}'
+      },
+      url: "{% url 'viveca_dashboard_setting_user' %}",
+      method: 'GET',
+      success: function (data) {
+        if (data.status == true) {
+          $('#table_search_results').html(data.html);
+        }
+      },
+      error: function (e) {}
+    });
+  });
+
+  function AddUser() {
+    $('#btn_submit').prop('disabled', true);
+    $.ajax({
+      data: $('#addUserForm').serialize(),
+      type: 'post',
+      url: $('#addUserForm').attr('action'),
+      success: function (data) {
+        if (data.status == true) {
+          window.location.href = "{% url 'viveca_dashboard_setting_user' %}";
+        } else {
+          $('#btn_submit').prop('disabled', false);
+          $('#user_form').html(data.html);
+        }
+      },
+      error: function (e) {
+        //alert('error');
+      }
+    });
+  }
+
+  function editUserPopup() {
+    var len = $("#userlistID input[type=checkbox]:checked").length;
+    if (len > 1) {
+      alert('You must select only a single user for editing.');
+    }
+    if (len == 0) {
+      alert('Please select a user.');
+    }
+
+    if (len == 1) {
+      $.ajax({
+        data: $("#userlistID").serialize(),
+        type: 'post',
+        url: "{% url 'viveca_dashboard_setting_user_edit_popup' %}",
+        success: function (data) {
+          if (data.status == true) {
+            $('#user_form').html(data.html);
+            $('#add_new_user_modal_btn').click();
+          }
+        },
+        error: function (e) {
+          //alert('error');
+        }
+      });
+    }
+  }
+
+  function resetForm() {
+    $("#addUserForm :input").each(function () {
+      $(this).val('');
+    });
+
+    $('#passwordArea').html($('#add-user-PASSWORDS').html());
+    $("#addUserForm").attr('action', "{% url 'viveca_dashboard_setting_user_add' %}")
+  }
+</script>
+{% endblock %}

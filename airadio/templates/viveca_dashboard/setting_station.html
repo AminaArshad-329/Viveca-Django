@@ -1,0 +1,265 @@
+{% extends "base.html" %}
+
+{% load static radio_tags el_pagination_tags %}
+
+{% block title %}Station Settings{% endblock %}
+{% block navbar_title %}STATION SETTINGS{% endblock %}
+
+{% block content %}
+
+<div class="overflow-hidden rounded-2xl mb-4">
+  <div class="bg-lighter-gray p-4">
+    <h2 class="text-lg font-semibold leading-6 text-white mb-6">STATIONS LIST</h2>
+
+    <div class="flex flex-col md:flex-row md:justify-between">
+      <div class="w-full max-w-96">
+        <div class="w-full max-w-96 flex rounded-md shadow-sm mb-6">
+          <div class="relative flex flex-grow items-stretch focus-within:z-10">
+            <input type="text" name="station_search_input" id="station_search_input" autocomplete="off"
+            class="block w-full rounded-none rounded-l-md border-0 py-1.5 sm:text-sm sm:leading-6 bg-main-gray text-white placeholder-gray-400 ring-1 ring-inset ring-separator-gray focus:ring-1 focus:ring-inset focus:ring-ring-gray"
+            placeholder="Search">
+          </div>
+          <button type="button" class="relative -ml-px inline-flex items-center gap-x-1.5 rounded-r-md px-3 py-2 text-sm font-semibold text-white ring-1 ring-inset ring-separator-gray bg-main-gray hover:bg-dark-gray">
+            <i class="fa-solid fa-magnifying-glass"></i>
+          </button>
+        </div>
+      </div>
+
+      <div class="relative inline-block text-left mb-6">
+        <div>
+          <button type="button" data-dropdown-toggle="station_tools_dropdown"
+            class="viveca-primary-button"
+            id="menu-button" aria-expanded="true" aria-haspopup="true">
+            <i class="fa-solid fa-gear fa-fw"></i>
+            TOOLS
+            <i class="fa-solid fa-angle-down"></i>
+          </button>
+        </div>
+        <div
+          class="viveca-dropdown-box"
+          id="station_tools_dropdown" role="menu" aria-orientation="vertical" aria-labelledby="menu-button" tabindex="-1">
+          <div class="py-1" role="none">
+            <a href="javascript:;" onclick="resetForm();" data-modal-target="add_new_station_modal" data-modal-toggle="add_new_station_modal" class="viveca-dropdown-item" role="menuitem" tabindex="-1">
+              <i class="fa-solid fa-plus fa-fw"></i> Add
+            </a>
+            <a href="javascript:;" onclick="editStationPopup();" class="viveca-dropdown-item" role="menuitem" tabindex="-1">
+              <i class="fa-solid fa-pencil fa-fw"></i> Edit
+            </a>
+            <button type="button" id="add_new_station_modal_btn" data-modal-target="add_new_station_modal" data-modal-toggle="add_new_station_modal" class="hidden" role="menuitem" tabindex="-1"></button>
+            <a href="javascript:;" onclick="if(confirm('Do you really want to delete these station(s) ?')){document.stationListForm.submit();}" class="viveca-dropdown-item" role="menuitem" tabindex="-1">
+              <i class="fa-solid fa-trash fa-fw"></i> Delete
+            </a>
+            <a href="javascript:;" onclick="cloneStations();" class="viveca-dropdown-item" role="menuitem" tabindex="-1">
+              <i class="fa-solid fa-copy fa-fw"></i> Clone
+            </a>
+            <a href="javascript:;" onclick="saveItems();" class="viveca-dropdown-item" role="menuitem" tabindex="-1">
+              <i class="fa-solid fa-refresh fa-fw"></i> Save Settings
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <form id="IDStationList" name="stationListForm" action="." method="post">
+      {% csrf_token %}
+      <input id="idAction" type="hidden" name="action" value="delete">
+
+      {% paginate 10 stations %}
+
+      <div class="bg-main-gray pb-4 rounded-xl overflow-x-scroll">
+        <div class="inline-block min-w-full py-2 align-middle">
+          <table id="mytable" class="min-w-full divide-y divide-separator-gray">
+            <thead>
+              <th scope="col" class="relative input-group px-7 sm:w-12 sm:px-6">
+                <input type="checkbox" id="check-all" class="checkbox-input"/>
+              </th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white text-center">STATION NAME</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white text-center">STATION LOGO</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white text-center">RETAIL</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white text-center">RETAIL CODE</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white text-center">STREAMING</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white text-center">STREAMING URL</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white text-center">PREVIEW</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white text-center">ORDER</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white text-center">LOCATION</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white text-center">PUBLISHED</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white text-center">MICROSITE URL</th>
+            </thead>
+
+            <tbody id="table_search_results" class="divide-y divide-separator-gray">
+              {% include 'viveca_dashboard/partials/setting_station_search.html' %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% show_pages %}
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block modal %}
+<div id="add_new_station_modal" tabindex="-1" aria-hidden="true"
+  class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-[51] justify-center items-center w-full md:inset-0 h-[calc(100%-2rem)] md:h-[calc(100%-4rem)] max-h-full pointer-events-none">
+  <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+
+  <div class="relative px-4 lg:pl-20 pt-16 w-full max-w-2xl max-h-full">
+    <!-- Modal content -->
+    <div class="relative bg-lighter-gray rounded-lg shadow pointer-events-auto">
+      <!-- Modal header -->
+      <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t">
+        <h3 class="text-xl font-semibold text-white">
+          ADD/EDIT STATION
+        </h3>
+        <button type="button" data-modal-hide="add_new_station_modal"
+          class="text-gray-100 bg-transparent hover:bg-main-gray hover:text-white rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center">
+          <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+          </svg>
+          <span class="sr-only">Close modal</span>
+        </button>
+      </div>
+      <!-- Modal body -->
+      <div class="p-4 md:p-5 space-y-4">
+        <div id="station_form">
+          {% include 'viveca_dashboard/partials/station_add_edit_form.html' with form=station_form %}
+        </div>
+
+        <div class="flex justify-center py-6">
+          <button type="button" class="viveca-primary-button" onclick="saveStation();">
+            <i class="fa-solid fa-circle-check fa-fw"></i> <span>SAVE CHANGES</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra-scripts %}
+<script src="{% static 'CrbUI/audio/button/js/modernizr.js' %}" type="text/javascript"></script>
+<script src="{% static 'CrbUI/audio/button/js/swfobject.js' %}" type="text/javascript"></script>
+<script src="{% static 'CrbUI/audio/button/js/CrbUI_AudioButton-0.74.js' %}" type="text/javascript"></script>
+<script type="text/javascript">
+  $(document).ready(function () {
+    CrbUI_AP.render();
+    bindStationLogoChange();
+
+    $('#check-all').click(function () {
+      var $this = $(this);
+      $("#IDStationList input[name=station]").each(function () {
+        $(this).prop("checked", $this.is(':checked'));
+      });
+    });
+
+    $('#station_search_input').keyup(function (e) {
+      var q = $(this).val();
+      $.ajax({
+        data: {
+          'q': q
+        },
+        url: "{% url 'viveca_dashboard_setting_station' %}",
+        method: 'GET',
+        success: function (data) {
+          if (data.status == true) {
+            $('#table_search_results').html(data.html);
+            CrbUI_AP.render();
+          }
+        },
+        error: function (e) {}
+      });
+    });
+  });
+
+  function bindStationLogoChange() {
+    $("#station_logo_box").on('change', '#id_station_logo', function () {
+      var fileInput = this;
+      var previewImage = $('#station_logo_preview img');
+      var previewImageSrc = previewImage.attr('src');
+
+      if (fileInput.files && fileInput.files[0]) {
+        var reader = new FileReader();
+        reader.onload = function (e) {
+          previewImage.attr('src', e.target.result);
+        }
+        reader.readAsDataURL(fileInput.files[0]);
+      } else {
+        previewImage.attr('src', previewImageSrc);
+      }
+    });
+  }
+
+  function saveStation() {
+    $.ajax({
+      data: $('#idStationForm').serialize(),
+      type: 'post',
+      url: $('#idStationForm').attr('action'),
+      success: function (data) {
+        if (data.status == true) {
+          $('#idStationForm').submit();
+        } else {
+          $('#station_form').html(data.html);
+        }
+      },
+      error: function (e) {
+        alert('error');
+      }
+    });
+  }
+
+  function editStationPopup() {
+    var len = $("#IDStationList input[name=station]:checked").length;
+    if (len > 1) {
+      alert('You must select only a single station for editing.');
+    }
+    if (len == 0) {
+      alert('Please select a station.');
+    }
+
+    if (len == 1) {
+      $.ajax({
+        data: $("#IDStationList").serialize(),
+        type: 'post',
+        url: "{% url 'viveca_dashboard_station_edit_popup' %}",
+        success: function (data) {
+          if (data.status == true) {
+            $('#station_form').html(data.html);
+            $('#add_new_station_modal_btn').click();
+            bindStationLogoChange();
+          }
+        },
+        error: function (e) {
+          alert('error');
+        }
+      });
+    }
+  }
+
+  function cloneStations() {
+    $('#idAction').val('clone');
+    document.stationListForm.submit();
+  }
+
+  function saveItems() {
+    var len = $("#IDStationList input[name=station]:checked").length;
+    if (len == 0) {
+      alert('Please select the stations to be updated.');
+    } else {
+      $('#idAction').val('save');
+      $('#IDStationList').submit();
+    }
+  }
+
+  function resetForm() {
+    $("#idStationForm").attr('action', "{% url 'viveca_dashboard_setting_station_add' %}");
+    $("#idStationForm :input").each(function () {
+      $(this).val('');
+    });
+    $('#station_logo_preview').html('<img src="/static/images/64img.png" alt="" height="64" width="64">');
+    $('#station_logo_box').html('<input type="file" id="id_station_logo" name="station_logo">');
+    $('#station_preview_box').html('<input type="file" id="id_station_preview" name="station_preview">');
+    bindStationLogoChange();
+  }
+</script>
+{% endblock %}

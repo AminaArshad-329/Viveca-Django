@@ -1,0 +1,8 @@
+{% load static %}
+
+{% if img_url %}
+<img src="{{ img_url }}" alt="image" height="64" width="64">
+<input type="text" class="hidden" id="id_image_url" name="image_url" value="{{img_url}}">
+{% else %}
+No matching results found in Discogs.
+{% endif %}

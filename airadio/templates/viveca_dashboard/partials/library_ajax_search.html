@@ -1,0 +1,42 @@
+{% load radio_tags el_pagination_tags %}
+
+{% for item in results %}
+<tr class="infinite-item">
+  <td class="relative input-group px-7 sm:w-12 sm:px-6">
+    <input type="checkbox" name="library" value="{{ item.id }}" class="checkbox-input">
+  </td>
+  <td class="px-3 py-4 text-sm text-white">{{ item.title }}</td>
+  <td class="px-3 py-4 text-sm text-white">{{ item.artistname }}</td>
+  <td class="whitespace-nowrap pr-3 py-4 text-sm text-white">{% get_point_stars item.love_rating %}</td>
+  <td class="text-center px-3 py-4 text-sm text-white">
+    <div id="{{ item.media }}" data-inpoint="{{ item.in_point }}" class="CrbUI_AudioButton"></div>
+  </td>
+</tr>
+{% empty %}
+<tr>
+  <td class="text-base text-center text-white font-semibold px-3 pt-6 lg:pt-8" valign="center" colspan="5" class="dataTables_empty">
+    No records found
+  </td>
+</tr>
+{% endfor %}
+<script>
+  var loading = false;
+    var infinite = new Waypoint.Infinite({
+      element: $('.infinite-container')[0],
+      offset: 'bottom-in-view',
+
+      onBeforePageLoad: function() {
+          if (!loading) {
+              $('.loading').show();
+              loading = true;
+          }
+      },
+
+      onAfterPageLoad: function() {
+        $('.loading').hide();
+        loading = false;
+        CrbUI_AP.render();
+        bindMediaUpload();
+      }
+    });
+</script>

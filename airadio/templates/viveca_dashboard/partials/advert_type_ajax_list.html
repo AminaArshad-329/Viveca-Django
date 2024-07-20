@@ -1,0 +1,17 @@
+{% load radio_tags %}
+
+{% for item in adverts_banner %}
+<tr>
+  <td class="relative input-group px-7 sm:w-12 sm:px-6"><input type="checkbox" name="advert" value="{{ item.id }}" class="checkbox-input"/></td>
+  <td class="px-3 py-4 text-sm text-white">{{ item.title }}</td>
+  <td class="px-3 py-4 text-sm text-white">{{ item.get_type_display }}</td>
+  <td class="whitespace-nowrap pr-3 py-4 text-sm text-white">{% get_point_stars item.points %}</td>
+  <td class="text-center px-3 py-4 text-sm text-white">
+    <div id="{{ item.media }}" data-inpoint="{{ item.in_point }}" class="CrbUI_AudioButton"></div>
+  </td>
+</tr>
+{% empty %}
+<tr class="odd">
+  <td class="text-base text-center text-white font-semibold px-3 pt-6 lg:pt-8" valign="center" colspan="5" class="dataTables_empty">No records found</td>
+</tr>
+{% endfor %}

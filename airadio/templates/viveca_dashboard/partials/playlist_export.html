@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% load radio_tags %}
+
+{% block title %}Reports Playlist Export{% endblock %}
+
+{% block content %}
+<div class="col-xs-12 col-sm-12 col-md-10 col-lg-10">
+  <div class="row">
+    <h3>Playlist Export</h3>
+    <div class="inner_con3">
+
+      {% if datas %}
+      <div class="librayfields">
+        <div class="btn-group open">
+          <a class="btn btn-primary" href="{{ json_url }}" target="_blank"><i class="fa fa-list"></i> <span>Click To View JSON
+              Results</span>
+          </a>
+        </div>
+      </div>
+      {% for data in datas %}
+      {% if forloop.counter0|divisibleby:"2" %}<div class="table-responsive">{% endif %}
+        <span class="label label-sm label-success" style="font-size: 14px;">{{ data.hour|to_time }}</span>
+        <table id="mytable" class="table table-bordred table-striped">
+          <thead>
+            <th>POSITION</th>
+            <th>ARTIST</th>
+            <th>TITLE</th>
+            <th></th>
+          </thead>
+          <tbody class="divide-y divide-separator-gray">
+            {% for item in data.exports.all %}
+            <tr>
+              <td>{{ forloop.counter }}</td>
+              <td>{% if item.get_item.artist %}{{ item.get_item.artist }}{% else %}{{ item.get_item_type }}{% endif %}</td>
+              <td>{{ item.get_item.title }}</td>
+              <td><a
+                  href="{% url 'viveca_dashboard_player_content_data' %}?url={{ item.get_item_media }}&song={{ item.get_item.title }}{% if item.get_item.artist %}&artist={{ item.get_item.artist }}{% endif %}"
+                  class="btn btn-warning"><i class="fa fa-download"></i> Export</a></td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+        {% if forloop.last or forloop.counter|divisibleby:"2" %}
+      </div>{% endif %}
+      {% endfor %}
+
+      {% else %}
+      <p>No exports found or exports are being processed.</p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,12 @@
+<form id="IDgenreForm" method="post" role="form"
+  action="{% if genre %}{% url 'viveca_dashboard_genre_edit' genre.id %}{% else %}{% url 'viveca_dashboard_setting_genres_add' %}{% endif %}">
+  {% csrf_token %}
+
+  <div class="horizontal-input-group">
+    <label class="input-label">Genre Name</label>
+    <div class="form-control-box">
+      <input type="text" name="name" value="{{ form.name.value|default:'' }}" class="form-control" />
+      {% if form.name.errors %}<span class="help-text">{{ form.name.errors }}</span>{% endif %}
+    </div>
+  </div>
+</form>

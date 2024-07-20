@@ -1,0 +1,28 @@
+<div class="inline-block min-w-full py-2 align-middle">
+  <table class="min-w-full divide-y divide-separator-gray">
+    <thead>
+      <tr>
+        <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white">Title</th>
+        <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white">Item</th>
+        <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white">Preview Audio</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-separator-gray">
+      {% for result in results %}
+      <tr>
+        <td class="px-3 py-4 text-sm text-white">{{ result.title }}</td>
+        <td class="px-3 py-4 text-sm text-white">{{ result.type }}</td>
+        <td class="text-center px-3 py-4 text-sm text-white">
+          <div id="{{ result.media }}" data-inpoint="{{ result.in_point }}" class="CrbUI_AudioButton"></div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr class="odd">
+        <td class="text-base text-center text-white font-semibold px-3 pt-6 lg:pt-8" valign="center" colspan="3" class="dataTables_empty">
+          No records found
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

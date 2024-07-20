@@ -1,0 +1,47 @@
+<form id="djInAuxForm" role="form" action="{% url 'viveca_dashboard_reports_dj_inaux' %}" method="post" enctype="multipart/form-data">
+  {% csrf_token %}
+  <input type="hidden" name="object" value="{{ object.id }}">
+
+  {% include 'viveca_dashboard/partials/audio_player_ajax.html' with media_url=object.media.url %}
+
+  <div class="isolate flex justify-center mb-8">
+    <button type="button" onclick="setMarker('id_in_point', 'IN')"
+      class="disabled_waveform_button relative inline-flex items-center gap-x-2 px-3 py-2 rounded-md bg-gray-500 hover:bg-gray-600 text-white text-sm font-semibold ring-1 ring-inset ring-gray-500 hover:ring-gray-600 focus:z-10">
+      <i class="fa-solid fa-paper-plane fa-fw"></i><span>IN POINT</span>
+    </button>
+    <button type="button" onclick="setMarker('id_aux_point', 'AUX')"
+      class="disabled_waveform_button relative inline-flex items-center gap-x-2 px-3 py-2 rounded-md bg-red-500 hover:bg-red-600 text-white text-sm font-semibold ring-1 ring-inset ring-red-500 hover:ring-red-600 focus:z-10">
+      <i class="fa-solid fa-flag-checkered fa-fw"></i><span>POS CHAIN</span>
+    </button>
+  </div>
+
+  <div class="horizontal-input-group">
+    <label for="id_in_point" class="input-label">IN POINT <span class="text-red-500">*</span></label>
+    <div class="form-control-box">
+      <div class="relative w-full max-w-60">
+        <input readonly tabindex="-1" id="id_in_point" name="in_point" type="text" value="{{ object.in_point|default:'' }}" class="form-control readonly" />
+        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+          <span class="text-white text-13px" id="price-currency">MILLISECONDS</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="horizontal-input-group">
+    <label for="id_aux_point" class="input-label">POS CHAIN <span class="text-red-500">*</span></label>
+    <div class="form-control-box">
+      <div class="relative w-full max-w-60">
+        <input readonly tabindex="-1" type="text" id="id_aux_point" name="aux_point" value="{{ object.aux_point|default:'' }}" class="form-control readonly" />
+        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+          <span class="text-white text-13px" id="price-currency">MILLISECONDS</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
+
+<div class="flex justify-center py-6">
+  <button type="button" class="viveca-primary-button" onclick="$('#djInAuxForm').submit();">
+    <i class="fa-solid fa-circle-check fa-fw"></i> <span>SAVE CHANGES</span>
+  </button>
+</div>

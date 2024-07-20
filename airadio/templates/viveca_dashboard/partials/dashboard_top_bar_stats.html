@@ -1,0 +1,31 @@
+<div class="w-full flex bg-lighter-gray p-4 lg:p-6">
+  <div class="flex flex-col flex-1 justify-center mr-4">
+    <h3 class="text-base leading-7 text-white">UNIQUE USERS</h3>
+    <h3 class="text-4xl lg:text-5xl font-semibold tracking-tight text-white">{{ stats.unique_users|default:'0' }}</h3>
+  </div>
+  <h3 class="flex items-center text-white text-xl lg:text-2xl shrink-0"><i class="fa-solid fa-2x fa-users"></i></h3>
+</div>
+
+<div class="w-full flex bg-lighter-gray p-4 lg:p-6">
+  <div class="flex flex-col flex-1 justify-center mr-4">
+    <h3 class="text-base leading-7 text-white">CURRENT USERS</h3>
+    <h3 class="text-4xl lg:text-5xl font-semibold tracking-tight text-white">{{ stats.current_users|default:'0' }}</h3>
+  </div>
+  <h3 class="flex items-center text-white text-xl lg:text-2xl shrink-0"><i class="fa-solid fa-2x fa-users"></i></h3>
+</div>
+
+<div class="w-full flex bg-lighter-gray p-4 lg:p-6">
+  <div class="flex flex-col flex-1 justify-center mr-4">
+    <h3 class="text-base leading-7 text-white">SERVER LOAD</h3>
+    <h3 class="text-4xl lg:text-5xl font-semibold tracking-tight text-white">{{ stats.s3_data_usage|default:'0' }}%</h3>
+  </div>
+  <h3 class="flex items-center text-white text-xl lg:text-2xl shrink-0"><i class="fa-brands fa-2x fa-linux"></i></h3>
+</div>
+
+<div class="w-full flex bg-lighter-gray p-4 lg:p-6">
+  <div class="flex flex-col flex-1 justify-center mr-4">
+    <h3 class="text-base leading-7 text-white">SOCIAL SCORE</h3>
+    <h3 class="text-4xl lg:text-5xl font-semibold tracking-tight text-white">0</h3>
+  </div>
+  <h3 class="flex items-center text-white text-xl lg:text-2xl shrink-0"><i class="fa-solid fa-2x fa-thumbs-up"></i></h3>
+</div>

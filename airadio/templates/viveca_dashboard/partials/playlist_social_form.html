@@ -1,0 +1,105 @@
+<form id="id_socialcodeForm" name="socialcodeForm" method="post"
+  action="{% if social %}{% url 'viveca_dashboard_reports_playlist_social_update' social.id %}{% else %}{% url 'viveca_dashboard_reports_playlist_social_add' %}{% endif %}">
+  <input type="hidden" name="station" value="{{ station }}">
+  {% if not location == 'all' %}
+  <input type="hidden" name="location" value="{{ location }}">
+  {% endif %}
+  <input type="hidden" name="artist" value="{{ artist }}">
+  <input class="next_path" type="hidden" name="next" value="">
+
+  <a class="btn btn-default" href="{{ twitter|default:''|default_if_none:'' }}" target="_blank"><i class="fa-brands fa-square-x-twitter fa-2x"></i></a>
+  <a class="btn btn-default" href="{{ instagram|default:''|default_if_none:'' }}" target="_blank"><i class="fa-brands fa-square-instagram fa-2x"></i></a>
+
+  <div class="horizontal-input-group {% if form.title.errors %}has-error{% endif %}">
+    <label for="txttitle" class="input-label">TITLE</label>
+    <div class="form-control-box">
+      <input type="text" id="txttitle" name="title" value="{{ form.title.value|default:'' }}" class="form-control" placeholder="">
+      {% if form.title.errors %}<span class="help-text">{{form.title.errors}}</span>{% endif %}
+    </div>
+  </div>
+
+  <div class="horizontal-input-group {% if form.type.errors %}has-error{% endif %}">
+    <label for="id_type" class="input-label">TYPE</label>
+    <div class="form-control-box">
+      {{ form.type }}
+      {% if form.type.errors %}<span class="help-text">{{form.type.errors}}</span>{% endif %}
+    </div>
+  </div>
+
+  <div class="horizontal-input-group {% if form.post_link.errors %}has-error{% endif %}">
+    <label for="txtpost_link" class="input-label">POST LINK</label>
+    <div class="form-control-box">
+      <input type="text" id="txtpost_link" name="post_link" value="{{ form.post_link.value|default:'' }}" class="form-control"
+        placeholder="">
+      {% if form.post_link.errors %}<span class="help-text">{{form.post_link.errors}}</span>{% endif %}
+    </div>
+  </div>
+
+  <div class="horizontal-input-group">
+    <label for="txtpost_link" class="input-label">&nbsp;</label>
+    <div class="form-control-box">
+      <input type="button" class="viveca-secondary-button px-2.5 py-1.5 mb-4" onclick="FetchPostData()" value="Fetch Post Data">
+    </div>
+  </div>
+
+  <div class="horizontal-input-group {% if form.img_link.errors %}has-error{% endif %}">
+    <label for="inputPassword3" class="input-label">IMAGE LINK</label>
+    <div class="form-control-box">
+      <input id="txtimg_link" type="text" name="img_link" value="{{ form.img_link.value|default:'' }}" class="form-control" placeholder="">
+      {% if form.img_link.errors %}<span class="help-text">{{form.img_link.errors}}</span>{% endif %}
+    </div>
+  </div>
+
+  <div class="horizontal-input-group {% if form.post_text.errors %}has-error{% endif %}">
+    <label for="txtpost_text" class="input-label">POST TEXT</label>
+    <div class="form-control-box">
+      <textarea id="txtpost_text" class="form-control" name="post_text">{{ form.post_text.value|default:'' }}</textarea>
+      {% if form.post_text.errors %}<span class="help-text">{{form.post_text.errors}}</span>{% endif %}
+    </div>
+  </div>
+
+  <div class="horizontal-input-group {% if form.user_image_link.errors %}has-error{% endif %}">
+    <label for="txtuser_image_link" class="input-label">USER IMAGE URL</label>
+    <div class="form-control-box">
+      <input id="txtuser_image_link" type="text" name="user_image_link" value="{{ form.user_image_link.value|default:'' }}"
+        class="form-control" placeholder="">
+      {% if form.user_image_link.errors %}<span class="help-text">{{form.user_image_link.errors}}</span>{% endif %}
+    </div>
+  </div>
+
+  {% comment %}
+  <div class="horizontal-input-group {% if form.twitter_code.errors %}has-error{% endif %}">
+    <label for="inputPassword3" class="input-label">TWITTER CODE</label>
+    <div class="form-control-box">
+      <textarea name="twitter_code" class="form-control">{{ form.twitter_code.value|default:'' }}</textarea>
+      {% if form.twitter_code.errors %}<span class="help-text">{{form.twitter_code.errors}}</span>{% endif %}
+    </div>
+  </div>
+
+  <div class="horizontal-input-group {% if form.instagram_code.errors %}has-error{% endif %}">
+    <label for="inputPassword3" class="input-label">INSTAGRAM CODE</label>
+    <div class="form-control-box">
+      <textarea name="instagram_code" class="form-control">{{ form.instagram_code.value|default:'' }}</textarea>
+      {% if form.instagram_code.errors %}<span class="help-text">{{form.coinstagram_codede.errors}}</span>{% endif %}
+    </div>
+  </div>
+
+  <div class="horizontal-input-group {% if form.related_link_twitter.errors %}has-error{% endif %}">
+    <label for="inputPassword3" class="input-label">TWITTER RELATIVE LINK</label>
+    <div class="col-sm-4">
+      <input type="text" name="related_link_twitter" value="{{ form.related_link_twitter.value|default:'' }}" class="form-control"
+        placeholder="">
+      {% if form.related_link_twitter.errors %}<span class="help-text">{{form.related_link_twitter.errors}}</span>{% endif %}
+    </div>
+  </div>
+
+  <div class="horizontal-input-group {% if form.related_link_instagram.errors %}has-error{% endif %}">
+    <label for="inputPassword3" class="input-label">INSTAGRAM RELATIVE LINK</label>
+    <div class="col-sm-4">
+      <input type="text" name="related_link_instagram" value="{{ form.related_link_instagram.value|default:'' }}" class="form-control"
+        placeholder="">
+      {% if form.related_link_instagram.errors %}<span class="help-text">{{form.related_link_instagram.errors}}</span>{% endif %}
+    </div>
+  </div>
+  {% endcomment %}
+</form>

@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+
+{% load radio_tags el_pagination_tags %}
+
+{% block title %}Location Settings{% endblock %}
+{% block navbar_title %}LOCATION SETTINGS{% endblock %}
+
+{% block content %}
+
+<div class="overflow-hidden rounded-2xl mb-4">
+  <div class="bg-lighter-gray p-4">
+    <h2 class="text-lg font-semibold leading-6 text-white mb-6">LOCATIONS LIST</h2>
+
+    <div class="flex justify-end relative inline-block text-left mb-6">
+      <div>
+        <button type="button" data-dropdown-toggle="location_tools_dropdown"
+          class="viveca-primary-button"
+          id="menu-button" aria-expanded="true" aria-haspopup="true">
+          <i class="fa-solid fa-gear fa-fw"></i>
+          TOOLS
+          <i class="fa-solid fa-angle-down"></i>
+        </button>
+      </div>
+      <div
+        class="viveca-dropdown-box"
+        id="location_tools_dropdown" role="menu" aria-orientation="vertical" aria-labelledby="menu-button" tabindex="-1">
+        <div class="py-1" role="none">
+          <a href="javascript:;" onclick="resetForm();" data-modal-target="add_new_location_modal" data-modal-toggle="add_new_location_modal" class="viveca-dropdown-item" role="menuitem" tabindex="-1">
+            <i class="fa-solid fa-plus fa-fw"></i> Add
+          </a>
+          <a href="javascript:;" onclick="editLocationPopup();" class="viveca-dropdown-item" role="menuitem" tabindex="-1">
+            <i class="fa-solid fa-pencil fa-fw"></i> Edit
+          </a>
+          <button type="button" id="add_new_location_modal_btn" data-modal-target="add_new_location_modal" data-modal-toggle="add_new_location_modal" class="hidden" role="menuitem" tabindex="-1"></button>
+          <a href="javascript:;" onclick="document.LocationListForm.submit();" class="viveca-dropdown-item" role="menuitem" tabindex="-1">
+            <i class="fa-solid fa-trash fa-fw"></i> Delete
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <form id="locationList" name="LocationListForm" action="." method="post">
+      {% csrf_token %}
+
+      <div class="bg-main-gray pb-4 rounded-xl overflow-x-scroll">
+        <div class="inline-block min-w-full py-2 align-middle">
+          <table id="mytable" class="min-w-full divide-y divide-separator-gray">
+            <thead>
+              <th scope="col" class="relative input-group px-7 sm:w-12 sm:px-6">
+                <input type="checkbox" id="check-all" class="checkbox-input"/>
+              </th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white">COUNTRY</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white">CITY</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white">LATITUDE</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white">LONGITUDE</th>
+            </thead>
+
+            <tbody class="divide-y divide-separator-gray">
+              {% for location in locations %}
+              <tr>
+                <td class="relative input-group px-7 sm:w-12 sm:px-6">
+                  <input type="checkbox" name="location" value="{{ location.id }}" class="checkbox-input"/>
+                </td>
+                <td class="px-3 py-4 text-sm text-white">{{ location.location_country }}</td>
+                <td class="px-3 py-4 text-sm text-white">{{ location.location_city }}</td>
+                <td class="px-3 py-4 text-sm text-white">{{ location.location_lat }}</td>
+                <td class="px-3 py-4 text-sm text-white">{{ location.location_long }}</td>
+              </tr>
+              {% empty %}
+              <tr class="odd">
+                <td class="text-base text-center text-white font-semibold px-3 pt-6 lg:pt-8" valign="center" colspan="5" class="dataTables_empty">No records found
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block modal %}
+<div id="add_new_location_modal" tabindex="-1" aria-hidden="true"
+  class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-[51] justify-center items-center w-full md:inset-0 h-[calc(100%-2rem)] md:h-[calc(100%-4rem)] max-h-full pointer-events-none">
+  <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+
+  <div class="relative px-4 lg:pl-20 pt-16 w-full max-w-2xl max-h-full">
+    <!-- Modal content -->
+    <div class="relative bg-lighter-gray rounded-lg shadow pointer-events-auto">
+      <!-- Modal header -->
+      <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t">
+        <h3 class="text-xl font-semibold text-white">
+          ADD/EDIT LOCATION
+        </h3>
+        <button type="button" data-modal-hide="add_new_location_modal"
+          class="text-gray-100 bg-transparent hover:bg-main-gray hover:text-white rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center">
+          <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+          </svg>
+          <span class="sr-only">Close modal</span>
+        </button>
+      </div>
+      <!-- Modal body -->
+      <div class="p-4 md:p-5 space-y-4">
+        <div id="loc_form">
+          {% include 'viveca_dashboard/partials/location_add_edit_form.html' with form=location_form %}
+        </div>
+
+        <div class="flex justify-center py-6">
+          <button type="button" class="viveca-primary-button" onclick="AddLocation();">
+            <i class="fa-solid fa-circle-check fa-fw"></i> <span>SAVE CHANGES</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra-scripts %}
+<script type="text/javascript">
+  $(document).ready(function () {
+    $('#check-all').click(function () {
+      var $this = $(this);
+      if ($this.is(':checked')) {
+        $("#locationList input[type=checkbox]").each(function () {
+          $(this).prop("checked", true);
+        });
+
+      } else {
+        $("#locationList input[type=checkbox]").each(function () {
+          $(this).prop("checked", false);
+        });
+      }
+    });
+  });
+
+  function AddLocation() {
+    $.ajax({
+      data: $('#IDlocationForm').serialize(),
+      type: 'post',
+      url: $('#IDlocationForm').attr('action'),
+      success: function (data) {
+        if (data.status == true) {
+          window.location.href = "{% url 'viveca_dashboard_setting_location' %}";
+        } else {
+          $('#loc_form').html(data.html);
+        }
+      },
+      error: function (e) {
+        alert('error');
+      }
+    });
+  }
+
+  function editLocationPopup() {
+    var len = $("#locationList input[type=checkbox]:checked").length;
+    if (len > 1) {
+      alert('You must select only a single location for editing.');
+    }
+    if (len == 0) {
+      alert('Please select a location.');
+    }
+
+    if (len == 1) {
+      $.ajax({
+        data: $("#locationList").serialize(),
+        type: 'post',
+        url: "{% url 'viveca_dashboard_edit_location_popup' %}",
+        success: function (data) {
+          if (data.status == true) {
+            $('#loc_form').html(data.html);
+            $('#add_new_location_modal_btn').click();
+          }
+        },
+        error: function (e) {
+          alert('error');
+        }
+      });
+    }
+  }
+
+  function resetForm() {
+    $("#IDlocationForm :input").each(function () {
+      $(this).val('');
+    });
+    $("#IDlocationForm").attr('action', "{% url 'viveca_dashboard_setting_location_add' %}");
+  }
+</script>
+{% endblock %}

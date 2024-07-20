@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% load static %}
+
+{% block title %}Dashboard{% endblock %}
+{% block navbar_title %}DASHBOARD{% endblock %}
+
+{% comment %} {% block extra-styles %}
+<link
+  href="http://15d8a316aa22a99d37c6-148ea8bbbdddd526b3187cb7155e3693.r79.cf5.rackcdn.com/assets/global/plugins/bootstrap-daterangepicker/daterangepicker-bs3.css"
+  rel="stylesheet" type="text/css" />
+{% endblock %} {% endcomment %}
+
+{% block content %}
+
+<!-- Date range picker -->
+{% comment %} <div id="dashboard-top" class="row">
+  <div class="pull-right">
+    <div id="dashboard-report-range" class="pull-right dashboard-date-range tooltips btn btn-fit-height" data-placement="top"
+      data-original-title="Change dashboard date range">
+      <i class="fa fa-calendar"></i>
+      <span>
+      </span>
+      <i class="fa fa-angle-down"></i>
+    </div>
+  </div>
+</div> {% endcomment %}
+
+<section class="mb-8 lg:mb-10">
+  <div id="stats_top_bar" class="w-full grid sm:grid-cols-2 xl:grid-cols-4 overflow-hidden rounded-2xl gap-1 mb-4">
+    {% include 'viveca_dashboard/partials/dashboard_top_bar_stats.html' with stats=stats %}
+  </div>
+</section>
+
+<section class="mb-8 lg:mb-10" id="topsongs">
+  {% include 'viveca_dashboard/partials/dashboard_topsongs_table.html' with topsongs=topsongs %}
+</section>
+{% endblock %}
+
+{% block extra-scripts %}
+{% comment %} <script
+  src="http://15d8a316aa22a99d37c6-148ea8bbbdddd526b3187cb7155e3693.r79.cf5.rackcdn.com/assets/global/plugins/bootstrap-daterangepicker/moment.min.js"
+  type="text/javascript"></script>
+<script
+  src="http://15d8a316aa22a99d37c6-148ea8bbbdddd526b3187cb7155e3693.r79.cf5.rackcdn.com/assets/global/plugins/bootstrap-daterangepicker/daterangepicker.js"
+  type="text/javascript"></script> {% endcomment %}
+<script src="{% static 'js/dashboard.js' %}"></script>
+<script type="text/javascript">
+  $(document).ready(function () {
+    Dashboard.initDashboardDaterange();
+  });
+</script>
+{% endblock %}

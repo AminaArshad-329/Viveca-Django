@@ -1,0 +1,158 @@
+<form id="scheduleForm" method="post" role="form"
+  action="{% if schedule %}{% url 'viveca_dashboard_schedule_edit' schedule.id %}{% else %}{% url 'viveca_dashboard_schedule_add' %}{% endif %}">
+
+  <div class="horizontal-input-group">
+    <label for="id_related_station" class="input-label">SELECT STATION</label>
+    <div class="form-control-box">
+      {{ form.related_station }}
+      {% if form.related_station.errors %}<span class="help-text">{{ form.related_station.errors }}</span>{% endif %}
+    </div>
+  </div>
+
+  <div class="horizontal-input-group">
+    <label for="id_branding" class="input-label">INSERT BRANDING EVERY</label>
+    <div class="form-control-box">
+      <div class="relative w-full max-w-60">
+        <input class="form-control" id="id_branding" name="branding" type="text" value="{{ form.branding.value|default:0 }}"/>
+        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+          <span class="text-white text-13px" id="price-currency">SONGS</span>
+        </div>
+      </div>
+      {% if form.branding.errors %}<span class="help-text">{{ form.branding.errors }}</span>{% endif %}
+    </div>
+  </div>
+
+  <div class="horizontal-input-group">
+    <label for="id_advert" class="input-label">INSERT ADVERT EVERY</label>
+    <div class="form-control-box">
+      <div class="relative w-full max-w-60">
+        <input class="form-control" id="id_advert" name="advert" type="text" value="{{ form.advert.value|default:0 }}"/>
+        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+          <span class="text-white text-13px" id="price-currency">SONGS</span>
+        </div>
+      </div>
+      {% if form.advert.errors %}<span class="help-text">{{ form.advert.errors }}</span>{% endif %}
+    </div>
+  </div>
+{% comment %} 
+  <div class="horizontal-input-group">
+    <label for="id_wall" class="input-label">INSERT WALL ITEM EVERY</label>
+    <div class="form-control-box">
+      <div class="relative w-full max-w-60">
+        <input class="form-control" id="id_wall" name="wall" type="text" value="{{ form.wall.value|default:0 }}"/>
+        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+          <span class="text-white text-13px" id="price-currency">SONGS</span>
+        </div>
+      </div>
+      {% if form.wall.errors %}<span class="help-text">{{ form.wall.errors }}</span>{% endif %}
+    </div>
+  </div> {% endcomment %}
+
+  <h3 class="text-md font-semibold leading-6 text-center text-white mb-6">MUSIC ROTATION</h3>
+
+  <div class="horizontal-input-group larger-input-label">
+    <label for="id_rate_5" class="input-label">
+      <i class="fa-solid fa-star"></i>
+      <i class="fa-solid fa-star"></i>
+      <i class="fa-solid fa-star"></i>
+      <i class="fa-solid fa-star"></i>
+      <i class="fa-solid fa-star"></i>
+    </label>
+    <div class="form-control-box">
+      <div class="relative w-full max-w-60">
+        <input class="form-control" id="id_rate_5" name="rate_5" type="text" value="{{ form.rate_5.value|default:0 }}"/>
+        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+          <span class="text-white text-13px" id="price-currency">SONGS</span>
+        </div>
+      </div>
+      {% if form.rate_5.errors %}<span class="help-text">{{ form.rate_5.errors }}</span>{% endif %}
+    </div>
+  </div>
+
+  <div class="horizontal-input-group larger-input-label">
+    <label for="id_rate_4" class="input-label">
+      <i class="fa-solid fa-star"></i>
+      <i class="fa-solid fa-star"></i>
+      <i class="fa-solid fa-star"></i>
+      <i class="fa-solid fa-star"></i>
+    </label>
+    <div class="form-control-box">
+      <div class="relative w-full max-w-60">
+        <input class="form-control" id="id_rate_4" name="rate_4" type="text" value="{{ form.rate_4.value|default:0 }}"/>
+        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+          <span class="text-white text-13px" id="price-currency">SONGS</span>
+        </div>
+      </div>
+      {% if form.rate_4.errors %}<span class="help-text">{{ form.rate_4.errors }}</span>{% endif %}
+    </div>
+  </div>
+
+  <div class="horizontal-input-group larger-input-label">
+    <label for="id_rate_3" class="input-label">
+      <i class="fa-solid fa-star"></i>
+      <i class="fa-solid fa-star"></i>
+      <i class="fa-solid fa-star"></i>
+    </label>
+    <div class="form-control-box">
+      <div class="relative w-full max-w-60">
+        <input class="form-control" id="id_rate_3" name="rate_3" type="text" value="{{ form.rate_3.value|default:0 }}"/>
+        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+          <span class="text-white text-13px" id="price-currency">SONGS</span>
+        </div>
+      </div>
+      {% if form.rate_3.errors %}<span class="help-text">{{ form.rate_3.errors }}</span>{% endif %}
+    </div>
+  </div>
+
+  <div class="horizontal-input-group larger-input-label">
+    <label for="id_rate_2" class="input-label">
+      <i class="fa-solid fa-star"></i>
+      <i class="fa-solid fa-star"></i>
+    </label>
+    <div class="form-control-box">
+      <div class="relative w-full max-w-60">
+        <input class="form-control" id="id_rate_2" name="rate_2" type="text" value="{{ form.rate_2.value|default:0 }}"/>
+        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+          <span class="text-white text-13px" id="price-currency">SONGS</span>
+        </div>
+      </div>
+      {% if form.rate_2.errors %}<span class="help-text">{{ form.rate_2.errors }}</span>{% endif %}
+    </div>
+  </div>
+
+  <div class="horizontal-input-group larger-input-label">
+    <label for="id_rate_1" class="input-label">
+      <i class="fa-solid fa-star"></i>
+    </label>
+    <div class="form-control-box">
+      <div class="relative w-full max-w-60">
+        <input class="form-control" id="id_rate_1" name="rate_1" type="text" value="{{ form.rate_1.value|default:0 }}"/>
+        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+          <span class="text-white text-13px" id="price-currency">SONGS</span>
+        </div>
+      </div>
+      {% if form.rate_1.errors %}<span class="help-text">{{ form.rate_1.errors }}</span>{% endif %}
+    </div>
+  </div>
+
+  <div class="horizontal-input-group smaller-input-label">
+    <label for="id_seperate_genres_songs" class="input-label relative">
+      <input type="checkbox" class="checkbox-input left-1" name="seperate_genres" {% if form.seperate_genres.value %}checked{% endif %}> SEPERATE SAME GENRES
+    </label>
+    <div class="form-control-box">
+      <div class="relative w-full max-w-60">
+        <input class="form-control" id="id_seperate_genres_songs" name="seperate_genres_songs" type="text" value="{{ form.seperate_genres_songs.value|default:0 }}"/>
+        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+          <span class="text-white text-13px" id="price-currency">SONGS</span>
+        </div>
+      </div>
+      {% if form.seperate_genres_songs.errors %}<span class="help-text">{{ form.seperate_genres_songs.errors }}</span>{% endif %}
+    </div>
+  </div>
+
+  <div class="flex justify-center py-6">
+    <button type="button" class="viveca-primary-button" onclick="AddSchedule();">
+      <i class="fa-solid fa-circle-check fa-fw"></i> <span>SAVE CHANGES</span>
+    </button>
+  </div>
+</form>

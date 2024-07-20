@@ -1,0 +1,80 @@
+{% load static %}
+
+<div class="col-md-12 col-sm-12">
+  <form id="idStationForm" method="post" enctype="multipart/form-data" role="form"
+    action="{% if station %}{% url 'viveca_dashboard_setting_station_edit' station.id %}{% else %}{% url 'viveca_dashboard_setting_station_add' %}{% endif %}">
+    {% csrf_token %}
+
+    <div class="horizontal-input-group {% if form.station_name.errors %}has-error{% endif %}">
+      <label class="input-label">STATION NAME <span class="text-red-500">*</span></label>
+      <div class="form-control-box">
+        <input type="text" name="station_name" value="{{ form.station_name.value|default:'' }}" class="form-control">
+        {% if form.station_name.errors %}<span class="help-text">{{ form.station_name.errors }}</span>{% endif %}
+      </div>
+    </div>
+
+    <div class="horizontal-input-group {% if form.station_description.errors %}has-error{% endif %}">
+      <label class="input-label">DESCRIPTION</label>
+      <div class="form-control-box">
+        <textarea name="station_description" cols="5" rows="5"
+          class="form-control">{{ form.station_description.value|default:'' }}</textarea>
+        {% if form.station_description.errors %}<span class="help-text">{{ form.station_description.errors }}</span>{% endif %}
+      </div>
+    </div>
+
+    <div class="horizontal-input-group {% if form.station_logo.errors %}has-error{% endif %}">
+      <label class="input-label">STATION LOGO</label>
+      <div class="form-control-box relative">
+        <div id="station_logo_preview" class="mb-3">
+          <img src="{% if form.station_logo.value %}{{ station.station_logo.url }}{% else %}{% static "images/64img.png" %}{% endif %}"
+            alt="" height="64" width="64">
+        </div>
+        <div id="station_logo_box">
+          {{ form.station_logo }}
+        </div>
+        {% if form.station_logo.errors %}<span class="help-text">{{ form.station_logo.errors }}</span>{% endif %}
+      </div>
+    </div>
+
+    <div class="horizontal-input-group {% if form.station_preview.errors %}has-error{% endif %}">
+      <label class="input-label">STATION PREVIEW</label>
+      <div id="station_preview_box" class="form-control-box relative">
+        {{ form.station_preview }}
+        {% if form.station_preview.errors %}<span class="help-text">{{ form.station_preview.errors }}</span>{% endif %}
+      </div>
+    </div>
+
+    <div class="horizontal-input-group {% if form.order_id.errors %}has-error{% endif %}">
+      <label class="input-label">ORDER <span class="text-red-500">*</span></label>
+      <div class="form-control-box">
+        <input type="text" name="order_id" value="{{ form.order_id.value|default:'' }}" class="form-control" />
+        {% if form.order_id.errors %}<span class="help-text">{{ form.order_id.errors }}</span>{% endif %}
+      </div>
+    </div>
+
+    <div class="horizontal-input-group {% if form.microsite.errors %}has-error{% endif %}">
+      <label class="input-label">MICROSITE URL</label>
+      <div class="form-control-box">
+        <input type="text" name="microsite" value="{{ form.microsite.value|default:'' }}" class="form-control" />
+        {% if form.microsite.errors %}<span class="help-text">{{ form.microsite.errors }}</span>{% endif %}
+      </div>
+    </div>
+
+    <div class="horizontal-input-group {% if form.location.errors %}has-error{% endif %}">
+      <label class="input-label">LOCATION</label>
+      <div class="form-control-box">
+        {{ form.location }}
+        <span class="help-text max-w-60">Hold down "Control", or "Command" on a Mac, to select more than one.</span>
+        {% if form.location.errors %}<span class="help-text">{{ form.location.errors }}</span>{% endif %}
+      </div>
+    </div>
+
+    <div class="horizontal-input-group {% if form.published.errors %}has-error{% endif %}">
+      <label class="input-label">IS PUBLISHED ?</label>
+      <div class="relative orm-control-box">
+        {{ form.published }}
+        {% if form.published.errors %}<span class="help-text">{{ form.published.errors }}</span>{% endif %}
+      </div>
+    </div>
+  </form>
+</div>

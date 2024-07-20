@@ -1,0 +1,396 @@
+{% extends "base.html" %}
+
+{% load static radio_tags el_pagination_tags %}
+
+{% block title %}Podcasts{% endblock %}
+{% block navbar_title %}PODCASTS{% endblock %}
+
+{% block content %}
+
+<!-- Tailwind CSS forcefully called classes -->
+<div class="hidden select-input min-w-40"></div>
+
+<div class="grid lg:grid-cols-2 overflow-hidden rounded-2xl gap-1 mb-4">
+  <div id="select_station" class="bg-lighter-gray p-4">
+    <h2 class="text-lg font-semibold leading-6 text-white mb-6">SELECT STATION</h2>
+
+    <div class="flex justify-between mb-6">
+      <div class="input-group flex flex-col">
+        {{ form.related_station }}
+        {% if form.related_station.errors %}<span class="help-text">{{ form.related_station.errors }}</span>{% endif %}
+      </div>
+
+      <button type="button" class="w-9 h-9 rounded-full bg-gray-800 p-1 text-white shadow-sm hover:bg-gray-900">
+        <i class="fa-solid fa-rotate"></i>
+      </button>
+    </div>
+
+    <div class="mb-4">
+      {% paginate 16 contents %}
+      
+      <div class="mb-4">
+        {% for content in contents %}
+        <div class="{% if content.studio_only %}studio{% else %}radio{% endif %}">
+          <div class="photo">
+            <img src="{{ content.cover_art.url }}" class="img-responsive" height="90" width="90"
+              title="{{ content.title }} - {{ content.artist }}" alt="{{ content.title }} - {{ content.artist }}" />
+            <h3 class="text-white">{% if content.studio_only %}STUDIO{% else %}RADIO{% endif %}</h3>
+          </div>
+          <div class="info">
+            <div class="row">
+              <div class="price">
+                <h5>
+                  <a href="{{ request.path }}?station_ref={{ content.related_station.id }}&edit={{content.id}}">
+                    <i class="fa fa-pencil-square-o"></i>
+                  </a>
+                </h5>
+              </div>
+              <div class="rating sm:hidden">
+                <h5><a href="javascript:;" onclick="deleteContent('{{content.id}}');"><i class="fa fa-trash"></i></a> </h5>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% empty %}
+        <p class="text-base font-semibold py-4">No records found</p>
+        {% endfor %}
+      </div>
+
+      {% show_pages %}
+    </div>
+  </div>
+
+  <div id="add_edit_podcast" class="bg-lighter-gray p-4">
+    <h2 class="text-lg font-semibold leading-6 text-white mb-6">ADD/EDIT PODCAST</h2>
+
+    <div class="flex justify-center">
+      <div class="inline-block">
+        <div class="input-group mb-6 md:mb-8">
+          <p class="text-white mb-2"><i class="fa fa-plus-circle"></i> <b>UPLOAD COVER <span class="text-red-500">*</span></b></p>
+          <div class="mb-3">
+            <img src="{% if form.cover_art and form.cover_art.url %}{{ form.cover_art.url }}{% else %}{% static "images/64img.png" %}{% endif %}"
+              alt="{% if form.title and form.title.value %}{{form.title.value}}{% endif %}" height="64" width="64">
+          </div>
+          {{ form.cover_art }}
+          {% if form.cover_art.errors %}<span class="help-text">{{ form.cover_art.errors }}</span>{% endif %}
+        </div>
+
+        <div class="input-group mb-6 md:mb-8">
+          <p class="text-white mb-2"><i class="fa fa-plus-circle"></i> <b>UPLOAD MEDIA <span class="text-red-500">*</span></b></p>
+          <input type="file" id="media-field">
+          {% if form.media.errors %}<span class="help-text">{{ form.media.errors }}</span>{% endif %}
+          <div id="media_upload_loading" style="display:none" role="status" class="flex justify-center">
+            <svg aria-hidden="true" class="w-10 h-10 text-gray-200 animate-spin fill-blue-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>
+                <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill"/>
+            </svg>
+            <span class="sr-only">Loading...</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <form role="form" action="{{ request.get_full_path }}" method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <input type="hidden" id="stationID" value="{{ form.related_station.value|default:'' }}" name="related_station">
+      <input type="hidden" id="id_media" name="media" value="{{ form.media.value|default:'' }}">
+
+      <div class="horizontal-input-group">
+        <label for="id_media_type" class="input-label">MEDIA TYPE</label>
+        <div class="form-control-box">
+          {{ form.media_type }}
+          {% if form.media_type.errors %}<span class="help-text">{{ form.media_type.errors }}</span>{% endif %}
+        </div>
+      </div>
+
+      <div class="horizontal-input-group">
+        <label for="title-field" class="input-label">TITLE <span class="text-red-500">*</span></label>
+        <div class="form-control-box">
+          <input type="text" name="title" id="title-field" value="{{ form.title.value|default:'' }}" class="form-control">
+          {% if form.title.errors %}<span class="help-text">{{ form.title.errors }}</span>{% endif %}
+        </div>
+      </div>
+
+      <div class="horizontal-input-group">
+        <label for="artist-field" class="input-label">ARTIST <span class="text-red-500">*</span></label>
+        <div class="form-control-box">
+          <input type="text" name="artist" id="artist-field" value="{{ form.artist.value|default:'' }}" class="form-control">
+          {% if form.artist.errors %}<span class="help-text">{{ form.artist.errors }}</span>{% endif %}
+        </div>
+      </div>
+
+      <div class="horizontal-input-group">
+        <label for="share-link-field" class="input-label">SHARE LINK</label>
+        <div class="form-control-box">
+          <input type="text" name="social_media_handle" id="share-link-field" value="{{ form.social_media_handle.value|default:'' }}"
+            class="form-control">
+          {% if form.social_media_handle.errors %}<span class="help-text">{{ form.social_media_handle.errors }}</span>{% endif %}
+        </div>
+      </div>
+
+      <div class="horizontal-input-group">
+        <label for="youtube" class="input-label">WEB URL</label>
+        <div class="form-control-box">
+          <input type="text" name="youtube" value="{{ form.youtube.value|default:'' }}" class="form-control">
+          {% if form.youtube.errors %}<span class="help-text">{{ form.youtube.errors }}</span>{% endif %}
+        </div>
+      </div>
+
+      <div id="mmi_audio_player">
+        {% if form.media.value  %}
+        {% include 'viveca_dashboard/partials/audio_player_ajax.html' with media_url=form.media.value %}
+        {% endif %}
+      </div>
+
+      <!--IN POINT-->
+      <div class="horizontal-input-group">
+        <div class="col-span-2 lg:col-span-4 flex justify-end pr-2 lg:pr-3">
+          <button disabled type="button" onclick="setMarker('id_in_point', 'IN')"
+            class="disabled_waveform_button relative inline-flex items-center gap-x-2 px-3 py-2 rounded-md bg-gray-500 hover:bg-gray-600 text-white text-sm font-semibold ring-1 ring-inset ring-gray-500 hover:ring-gray-600 focus:z-10">
+            <i class="fa-solid fa-paper-plane fa-fw"></i><span>&nbsp;&nbsp;IN POINT&nbsp;&nbsp;</span>
+          </button>
+        </div>
+        <div class="col-span-1 lg:col-span-4">
+          <input readonly tabindex="-1" id="id_in_point" name="in_point" type="text" value="{{ form.in_point.value|default:'' }}" class="form-control readonly" />
+          {% if form.in_point.errors %}<span class="help-text">{{ form.in_point.errors }}</span>{% endif %}
+        </div>
+        <div class="col-span-2 lg:col-span-4 pl-2 lg:pl-3">
+          <button disabled type="button" onclick="startAtMarker('id_in_point')"
+            class="disabled_waveform_button relative inline-flex items-center gap-x-2 px-3 py-2 rounded-md bg-gray-500 hover:bg-gray-600 text-white text-sm font-semibold ring-1 ring-inset ring-gray-500 hover:ring-gray-600 focus:z-10">
+            <i class="fa-solid fa-paper-plane fa-fw"></i><span>&nbsp;&nbsp;PLAY&nbsp;&nbsp;</span>
+          </button>
+        </div>
+      </div>
+
+      <!--POS CHAIN-->
+      <div class="horizontal-input-group">
+        <div class="col-span-2 lg:col-span-4 flex justify-end pr-2 lg:pr-3">
+          <button disabled type="button" onclick="setMarker('id_aux_point', 'AUX')"
+            class="disabled_waveform_button relative inline-flex items-center gap-x-2 px-3 py-2 rounded-md bg-red-500 hover:bg-red-600 text-white text-sm font-semibold ring-1 ring-inset ring-red-500 hover:ring-red-600 focus:z-10">
+            <i class="fa-solid fa-flag-checkered fa-fw"></i><span>POS CHAIN</span>
+          </button>
+        </div>
+        <div class="col-span-1 lg:col-span-4">
+          <input readonly tabindex="-1" type="text" id="id_aux_point" name="aux_point" value="{{ form.aux_point.value|default:'' }}" class="form-control readonly" />
+          {% if form.aux_point.errors %}<span class="help-text">{{ form.aux_point.errors }}</span>{% endif %}
+        </div>
+        <div class="col-span-2 lg:col-span-4 pl-2 lg:pl-3">
+          <button disabled type="button" onclick="startAtMarker('id_aux_point')"
+            class="disabled_waveform_button relative inline-flex items-center gap-x-2 px-3 py-2 rounded-md bg-red-500 hover:bg-red-600 text-white text-sm font-semibold ring-1 ring-inset ring-red-500 hover:ring-red-600 focus:z-10">
+            <i class="fa-solid fa-flag-checkered fa-fw"></i><span>&nbsp;&nbsp;PLAY&nbsp;&nbsp;</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="horizontal-input-group">
+        <label for="relative-links-field" class="input-label">RELATIVE LINK</label>
+        <div class="form-control-box">
+          <input type="text" name="relative_link" id="relative-links-field" value="{{ form.relative_link.value|default:'' }}"
+            class="form-control" />
+          {% if form.relative_link.errors %}<span class="help-text">{{ form.relative_link.errors }}</span>{% endif %}
+        </div>
+      </div>
+
+      <div class="horizontal-input-group">
+        <label for="points-field" class="input-label">POINTS <span class="text-red-500">*</span></label>
+        <div class="form-control-box">
+          <input type="text" id="points-field" value="{{ form.rating.value|default:'' }}"
+            onkeyup="changeRatingStars($(this).val(),'#pointStars');" name="rating" value="{{ form.love_rating.value|default:'' }}"
+            class="form-control" />
+          {% if form.rating.errors %}<span class="help-text">{{ form.rating.errors }}</span>{% endif %}
+        </div>
+      </div>
+
+      <div class="horizontal-input-group">
+        <label class="input-label">ROTATION</label>
+        <div id="pointStars" class="form-control-box flex">
+          <i class="fa-solid fa-star fa-fw text-white"></i>
+          <i class="fa-solid fa-star fa-fw ml-2 text-white"></i>
+          <i class="fa-solid fa-star fa-fw ml-2 text-white"></i>
+          <i class="fa-solid fa-star fa-fw ml-2 text-white"></i>
+          <i class="fa-solid fa-star fa-fw ml-2 text-white"></i>
+        </div>
+      </div>
+
+      <div class="horizontal-input-group">
+        <label for="id_schedule_item" class="input-label">SCHEDULE</label>
+        <div class="relative form-control-box">
+          {{ form.schedule_item }}
+          {% if form.schedule_item.errors %}<span class="help-text">{{ form.schedule_item.errors }}</span>{% endif %}
+        </div>
+      </div>
+
+      <div class="horizontal-input-group">
+        <label for="id_skip_allowed" class="input-label">ALLOW SKIP</label>
+        <div class="relative form-control-box">
+          {{ form.skip_allowed }}
+          {% if form.skip_allowed.errors %}<span class="help-text">{{ form.skip_allowed.errors }}</span>{% endif %}
+        </div>
+      </div>
+
+      <div class="horizontal-input-group">
+        <label for="id_studio_only" class="input-label">STUDIO ONLY</label>
+        <div class="relative form-control-box">
+          {{ form.studio_only }}
+          {% if form.studio_only.errors %}<span class="help-text">{{ form.studio_only.errors }}</span>{% endif %}
+        </div>
+      </div>
+
+      <div class="horizontal-input-group">
+        <label for="" class="input-label">FOREGROUND COLOR</label>
+        <div class="form-control-box">
+          <div class="flex color colorpicker-default" data-color="{{ form.ui_color_foreground.value|default:'#3865a8' }}"
+            data-color-format="rgba">
+            <input type="text" name="ui_color_foreground" class="form-control" value="{{ form.ui_color_foreground.value|default:'#3865a8' }}"
+              readonly>
+            <span class="input-group-btn">
+              <button class="btn default" type="button">
+                <i style="background-color: {{ form.ui_color_foreground.value|default:'#3865a8' }};"></i>&nbsp;
+              </button>
+            </span>
+          </div>
+          {% if form.ui_color_foreground.errors %}<span class="help-text">{{ form.ui_color_foreground.errors }}</span>{% endif %}
+        </div>
+      </div>
+
+      <div class="horizontal-input-group">
+        <label for="" class="input-label">BACKGROUND COLOR</label>
+        <div class="form-control-box">
+          <div class="flex color colorpicker-default" data-color="{{ form.ui_color_background.value|default:'#E98A38' }}"
+            data-color-format="rgba">
+            <input type="text" name="ui_color_background" class="form-control" value="{{ form.ui_color_background.value|default:'#E98A38' }}"
+              readonly>
+            <span class="input-group-btn">
+              <button class="btn default" type="button">
+                <i style="background-color: {{ form.ui_color_background.value|default:'#E98A38' }};"></i>&nbsp;
+              </button>
+            </span>
+          </div>
+          {% if form.ui_color_background.errors %}<span class="help-text">{{ form.ui_color_background.errors }}</span>{% endif %}
+        </div>
+      </div>
+
+      <div class="flex justify-center py-6">
+        <button type="submit" class="viveca-primary-button">
+          <i class="fa-solid fa-circle-check fa-fw"></i> <span>SAVE CHANGES</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra-scripts %}
+<script src="https://unpkg.com/wavesurfer.js@7"></script>
+<script src="https://unpkg.com/wavesurfer.js@7/dist/plugins/regions.min.js"></script>
+<script src="{% static 'js/wavesurfer_methods.js' %}" type="text/javascript"></script>
+
+<script type="text/javascript">
+  $(document).ready(function () {
+    {% if request.GET.edit %}
+    createWaveform();
+    {% endif %}
+  });
+  bindMediaUpload();
+  handleColorPicker();
+
+  $('#id_related_station').on('change', function (event) {
+    window.location.href = '{{request.path}}' + '?station_ref=' + $(this).val();
+  });
+
+  function handleColorPicker () {
+    if (!jQuery().colorpicker) {
+      return;
+    }
+    $('.colorpicker-default').colorpicker({
+      format: 'hex'
+    });
+    $('.colorpicker-rgba').colorpicker();
+  }
+
+  function bindMediaUpload() {
+    $('#media-field').on('change', function (event) {
+      event.stopPropagation(); // Stop stuff happening
+      event.preventDefault(); // Totally stop stuff happening
+      var data = new FormData();
+      var file = document.getElementById("media-field");
+      data.append("image", file.files[0]);
+      data.append("type", 'library');
+      $('#media_upload_loading').show();
+      $.ajax({
+        url: "{% url 'viveca_dashboard_upload_media' %}",
+        type: 'POST',
+        data: data,
+        cache: false,
+        dataType: 'json',
+        processData: false, // Don't process the files
+        contentType: false,
+        success: function (data) {
+          $('#id_media').val(data.media);
+          $('#mmi_audio_player').html(data.audio);
+          $('#media_upload_loading').hide();
+          if (wavesurfer==null) {
+            createWaveform();
+          }
+        }, error: function (e) {
+          $('#media_upload_loading').hide();
+        }
+      });
+    });
+  }
+
+  function loadInitialMarkers(){}
+
+  function changeRatingStars(val, element) {
+    var stars = 0;
+    if (val > 0 && val < 26) {
+      stars = 1;
+    }
+    if (val > 25 && val < 51) {
+      stars = 2;
+    }
+    if (val > 50 && val < 76) {
+      stars = 3;
+    }
+    if (val > 75 && val < 101) {
+      stars = 4;
+    }
+    if (val > 100) {
+      stars = 5;
+    }
+    if (val < 1 || val == '') {
+      stars = 0;
+    }
+    $(element).find(".fa-star").each(function (index) {
+      if (index < stars) {
+        $(this).addClass("text-amber-500");
+        $(this).removeClass("text-white");
+      } else {
+        $(this).addClass("text-white");
+        $(this).removeClass("text-amber-500");
+      }
+    });
+  }
+
+  function deleteContent(id) {
+    var approved = confirm("Do you really want to remove this item ?");
+    if (approved) {
+      $.ajax({
+        url: '{{request.path}}',
+        method: 'POST',
+        data: {
+          'delete': id
+        },
+        success: function (data) {
+          if (data.status == true) {
+            window.location.href = '{{request.get_full_path}}';
+          }
+        },
+        error: function (e) {
+
+        }
+      });
+    }
+  }
+</script>
+{% endblock %}

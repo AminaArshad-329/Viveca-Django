@@ -1,0 +1,526 @@
+{% extends "base.html" %}
+
+{% load static radio_tags el_pagination_tags %}
+
+{% block title %}Playlist{% endblock %}
+{% block navbar_title %}PLAYLIST{% endblock %}
+
+{% block content %}
+
+<!-- Tailwind CSS forcefully called classes -->
+  <div class="hidden text-red-700 text-green-700 text-blue-700"></div>
+
+<div class="grid grid-cols-1 max-w-full overflow-hidden rounded-2xl gap-1 mb-4">
+  <div class="bg-lighter-gray max-w-full p-4">
+    <h2 class="text-lg font-semibold leading-6 text-white mb-6">PLAYLIST</h2>
+
+    <div class="flex mb-6">
+      <div class="inline-block input-group">
+        <label for="id_location_input" class="input-label mb-1">SELECT LOCATION</label>
+        <select id="id_location_input" class="select-input">
+          <option value="all" {% if request.GET.location_ref == 'all' %}selected{% endif %}>ALL</option>
+          {% for location in locations %}
+          <option value="{{ location.id }}" {% if request.GET.location_ref == location.id|slugify %}selected{% endif %}>
+            {{ location.location_city }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="inline-block input-group ml-6">
+        <label for="station" class="input-label mb-1">SELECT STATION</label>
+        <select id="station" class="select-input">
+          {% for station in stations %}
+          <option value="{{ station.id }}" {% if request.GET.station_ref == station.id|slugify %}selected{% endif %}>
+            {{ station.station_name }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    {% comment %} <div class="btn-group open">
+      <button type="button" class="btn btn-primary"
+        onclick=window.location.href="{% url 'viveca_dashboard_reports_playlist_export' %}?station="
+        +$('#station').val()+"&location="+$('#id_location_input').val();><i class="fa fa-list"></i> <span>SHOW EXPORT</span>
+      </button>
+    </div> {% endcomment %}
+
+    <div class="flex justify-end relative inline-block text-left mb-6">
+      <div>
+        <button type="button" data-dropdown-toggle="playlist_tools_dropdown"
+          class="viveca-primary-button"
+          id="menu-button" aria-expanded="true" aria-haspopup="true">
+          <i class="fa-solid fa-gear fa-fw"></i>
+          TOOLS
+          <i class="fa-solid fa-angle-down"></i>
+        </button>
+      </div>
+      <div
+        class="viveca-dropdown-box"
+        id="playlist_tools_dropdown" role="menu" aria-orientation="vertical" aria-labelledby="menu-button" tabindex="-1">
+        <div class="py-1" role="none">
+          <a href="javascript:;" data-modal-target="add_playlist_modal" data-modal-toggle="add_playlist_modal" class="viveca-dropdown-item" role="menuitem" tabindex="-1">
+            <i class="fa-solid fa-plus fa-fw"></i> Add
+          </a>
+          <a href="javascript:;" data-modal-target="generate_playlist_modal" data-modal-toggle="generate_playlist_modal" onclick="exportPlaylist();" class="viveca-dropdown-item" role="menuitem" tabindex="-1">
+            <i class="fa-solid fa-inbox fa-fw"></i> Export
+          </a>
+          <a href="javascript:;" onclick="deleteItems();" class="viveca-dropdown-item" role="menuitem" tabindex="-1">
+            <i class="fa-solid fa-trash fa-fw"></i> Delete
+          </a>
+          <a href="javascript:;" onclick="saveItems();" class="viveca-dropdown-item" role="menuitem" tabindex="-1">
+            <i class="fa-solid fa-refresh fa-fw"></i> Save
+          </a>
+        </div>
+      </div>
+
+      <button id="reorder_button" disabled type="button" class="viveca-primary-button ml-4" onclick="reorderItems();">
+        <i class="fa-solid fa-up-down fa-fw"></i> SAVE ORDER
+      </button>
+    </div>
+
+    <form id="IDPlaylist" action="." method="post">
+      {% csrf_token %}
+      <input id="action" type="hidden" name="reorder">
+
+      {% paginate 25 playlist using 'list' %}
+
+      <div class="bg-main-gray pb-2 rounded-xl overflow-x-scroll">
+        <div class="inline-block min-w-full py-2 align-middle">
+          <table id="mytable" class="min-w-full divide-y divide-separator-gray">
+            <thead>
+              <th scope="col" class="relative input-group px-7 sm:w-12 sm:px-6">
+                <input type="checkbox" id="id_check_all_playlist" class="checkbox-input"/>
+              </th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white">POSITION</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white">ARTIST</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white">TITLE</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white">SKIP</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white">&nbsp;</th>
+            </thead>
+
+            <tbody class="divide-y divide-separator-gray">
+              {% for item in playlist %}
+              {% get_playlist_item item as object %}
+              <tr class="border-t border-gray-200">
+                <td class="relative input-group px-7 sm:w-12 sm:px-6">
+                  <input checked type="checkbox" name="reordered" value="{{ item.id }}" class="hidden"/>
+                  <input type="checkbox" name="id" value="{{ item.id }}" class="checkbox-input"/>
+                </td>
+                <td class="px-3 py-4 text-sm font-mono {{ object|text_color_class}}">{{ item.position }}</td>
+                <td class="px-3 py-4 text-sm font-mono {{ object|text_color_class}}">{% if object.artistname %}{{ object.artistname|default:'-' }}{% else %}{{ object|to_class_name}}{% endif %}</td>
+                <td class="px-3 py-4 text-sm font-mono {{ object|text_color_class}}">{{ object.title }}</td>
+                <td class="relative input-group px-3 py-4 text-sm text-white">
+                  <input {% if item.skipped %}checked{% endif %} type="checkbox" name="skipped" value="{{ item.id }}" class="checkbox-input"/>
+                </td>
+                <td class="px-3 py-2 text-white">
+                  <button type="button" class="viveca-secondary-button text-base" onclick="openMixer()" title="Mixer">
+                    <i class="fa-solid fa-headphones-simple"></i>
+                </td>
+              </tr>
+              {% empty %}
+              <tr class="odd">
+                <td class="text-base text-center text-white font-semibold px-3 pt-6 lg:pt-8" valign="center" colspan="5" class="dataTables_empty">No records found
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% show_pages %}
+    </form>
+  </div>
+
+  <div class="bg-lighter-gray max-w-full p-4">
+    <h2 class="text-lg font-semibold leading-6 text-white mb-6">GLOBAL</h2>
+    <button type="button" id="social_code_modal_btn" data-modal-target="social_code_modal" data-modal-toggle="social_code_modal" class="hidden" role="menuitem" tabindex="-1"></button>
+
+    <form id="IDGlobalPlaylist" action="." method="post">
+      {% csrf_token %}
+      {% paginate 25 global_playlist using 'playlist' %}
+
+      <div class="bg-main-gray pb-4 rounded-xl overflow-x-scroll">
+        <div class="inline-block min-w-full py-2 align-middle">
+          <table class="min-w-full divide-y divide-separator-gray">
+            <thead>
+              <th scope="col" class="relative input-group px-7 sm:w-12 sm:px-6">
+                <input type="checkbox" id="id_check_all_social" class="checkbox-input"/>
+              </th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white">TITLE</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white">TYPE</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white">UPDATED</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white">&nbsp;</th>
+              <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white">PREVIEW</th>
+            </thead>
+
+            <tbody class="divide-y divide-separator-gray">
+              {% for item in global_playlist %}
+              <tr>
+                <td class="relative input-group px-7 sm:w-12 sm:px-6">
+                  <input type="checkbox" name="id" value="{{ item.id }}" class="checkbox-input"/>
+                </td>
+                <td class="px-3 py-4 text-sm text-white">{{ item.title }}</td>
+                <td class="px-3 py-4 text-sm text-white">{{ item.get_type_display }}</td>
+                <td class="px-3 py-4 text-sm text-white">{{ item.updated }}</td>
+                <td class="whitespace-nowrap px-3 py-4 text-sm text-white">
+                  {% comment %} <a href="javascript:;" onclick=""
+                    class="viveca-secondary-button">Add to Playlist</a> {% endcomment %}
+                </td>
+                <td class="text-center px-3 py-4 text-sm text-white">
+                  <div id="{{ item.media }}" class="CrbUI_AudioButton"></div>
+                </td>
+              </tr>
+              {% empty %}
+              <tr class="odd">
+                <td class="text-base text-center text-white font-semibold px-3 pt-6 lg:pt-8" valign="center" colspan="6" class="dataTables_empty">No records found
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% show_pages %}
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block modal %}
+<div id="add_playlist_modal" tabindex="-1" aria-hidden="true"
+  class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-[51] justify-center items-center w-full md:inset-0 h-[calc(100%-2rem)] md:h-[calc(100%-4rem)] max-h-full pointer-events-none">
+  <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+
+  <div class="relative px-4 lg:pl-20 pt-16 w-full max-w-2xl max-h-full">
+    <!-- Modal content -->
+    <div class="relative bg-lighter-gray rounded-lg shadow pointer-events-auto">
+      <!-- Modal header -->
+      <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t">
+        <h3 class="text-xl font-semibold text-white">
+          ADD PLAYLIST
+        </h3>
+        <button type="button" data-modal-hide="add_playlist_modal"
+          class="text-gray-100 bg-transparent hover:bg-main-gray hover:text-white rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center">
+          <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+          </svg>
+          <span class="sr-only">Close modal</span>
+        </button>
+      </div>
+      <!-- Modal body -->
+      <div class="p-4 md:p-5 space-y-4">
+        <form id="searchForm" method="post" role="form" action="{% url 'viveca_dashboard_reports_playlist_insert' %}">
+          <input id="searchStation" type="hidden" name="station" value="">
+          <input id="searchLocation" type="hidden" name="location" value="">
+
+          <div class="horizontal-input-group">
+            <label for="IDtype" class="input-label">TYPE</label>
+            <div class="form-control-box">
+              <select id="IDtype" name="type" class="form-control">
+                <option value="music">Music</option>
+                <!--<option value="wall">Wall</option>-->
+                <option value="branding">Branding</option>
+                <option value="advert">Advert</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="horizontal-input-group">
+            <label for="IDsearch" class="input-label">SEARCH</label>
+            <div class="form-control-box">
+              <input id="IDsearch" type="text" class="form-control" />
+            </div>
+          </div>
+
+          <div id="searchResults">
+          </div>
+        </form>
+
+        <div class="flex justify-center py-6">
+          <button type="button" class="viveca-primary-button" onclick="insertToPlaylist();">
+            <i class="fa-solid fa-circle-check fa-fw"></i> <span>ADD PLAYLIST</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="generate_playlist_modal" tabindex="-1" aria-hidden="true"
+  class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-[51] justify-center items-center w-full md:inset-0 h-[calc(100%-2rem)] md:h-[calc(100%-4rem)] max-h-full pointer-events-none">
+  <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+
+  <div class="relative px-4 lg:pl-20 pt-16 w-full max-w-2xl max-h-full">
+    <!-- Modal content -->
+    <div class="relative bg-lighter-gray rounded-lg shadow pointer-events-auto">
+      <!-- Modal header -->
+      <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t">
+        <h3 class="text-xl font-semibold text-white">
+          ADD PLAYLIST
+        </h3>
+        <button type="button" data-modal-hide="generate_playlist_modal"
+          class="text-gray-100 bg-transparent hover:bg-main-gray hover:text-white rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center">
+          <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+          </svg>
+          <span class="sr-only">Close modal</span>
+        </button>
+      </div>
+      <!-- Modal body -->
+      <div class="p-4 md:p-5 space-y-4">
+        <div id="process_playlist" class="modal-body portlet-body">
+          <div class="progress progress-striped progress-success active">
+            <div style="width: 100%;" class="bar"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="social_code_modal" tabindex="-1" aria-hidden="true"
+  class="hidden overflow-y-auto overflow-x-hidden fixed top-0 right-0 left-0 z-[51] justify-center items-center w-full md:inset-0 h-[calc(100%-2rem)] md:h-[calc(100%-4rem)] max-h-full pointer-events-none">
+  <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"></div>
+
+  <div class="relative px-4 lg:pl-20 pt-16 w-full max-w-2xl max-h-full">
+    <!-- Modal content -->
+    <div class="relative bg-lighter-gray rounded-lg shadow pointer-events-auto">
+      <!-- Modal header -->
+      <div class="flex items-center justify-between p-4 md:p-5 border-b rounded-t">
+        <h3 class="text-xl font-semibold text-white">
+          ADD/EDIT SOCIALCODE
+        </h3>
+        <button type="button" data-modal-hide="social_code_modal"
+          class="text-gray-100 bg-transparent hover:bg-main-gray hover:text-white rounded-lg text-sm w-8 h-8 ms-auto inline-flex justify-center items-center">
+          <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6" />
+          </svg>
+          <span class="sr-only">Close modal</span>
+        </button>
+      </div>
+      <!-- Modal body -->
+      <div class="p-4 md:p-5 space-y-4">
+        <div id="social-code-form"></div>
+
+        <div class="flex justify-center py-6">
+          <button type="button" class="viveca-primary-button" onclick="if($('#txttitle').val() == ''){alert('Please add a title');}else{$('.next_path').val('{{ request.get_full_path }}');$('#id_socialcodeForm').submit();}">
+            <i class="fa-solid fa-circle-check fa-fw"></i> <span>ADD MUSICBED</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra-scripts %}
+<script src="{% static 'CrbUI/audio/button/js/modernizr.js' %}" type="text/javascript"></script>
+<script src="{% static 'CrbUI/audio/button/js/swfobject.js' %}" type="text/javascript"></script>
+<script src="{% static 'CrbUI/audio/button/js/CrbUI_AudioButton-0.74.js' %}" type="text/javascript"></script>
+<script type="text/javascript">
+  (function () {
+    var table = document.getElementById('mytable');
+    var rows = table.rows;
+    var dragSrcEl = null;
+
+    for (var i = 1; i < rows.length; i++) {
+      var row = rows[i];
+      row.draggable = true;
+
+      row.addEventListener('dragstart', function (e) {
+        dragSrcEl = this;
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/html', this.outerHTML);
+        this.classList.add('bg-gray-100');
+      });
+
+      row.addEventListener('dragend', function (e) {
+        this.classList.remove('bg-gray-100');
+        table.querySelectorAll('.border-t-2', '.border-blue-300').forEach(function (el) {
+          this.classList.add('border-t', 'border-gray-200');
+          el.classList.remove('border-t-2', 'border-blue-300');
+        });
+      });
+
+      row.addEventListener('dragover', function (e) {
+        e.preventDefault();
+        this.classList.remove('border-t', 'border-gray-200');
+        this.classList.add('border-t-2', 'border-blue-300');
+      });
+
+      row.addEventListener('dragenter', function (e) {
+        e.preventDefault();
+        this.classList.remove('border-t', 'border-gray-200');
+        this.classList.add('border-t-2', 'border-blue-300');
+      });
+
+      row.addEventListener('dragleave', function (e) {
+        this.classList.remove('border-t-2', 'border-blue-300');
+        this.classList.add('border-t', 'border-gray-200');
+      });
+
+      row.addEventListener('drop', function (e) {
+        e.preventDefault();
+        if (dragSrcEl != this) {
+          var sourceIndex = dragSrcEl.rowIndex;
+          var targetIndex = this.rowIndex;
+          if (sourceIndex < targetIndex) {
+            table.tBodies[0].insertBefore(dragSrcEl, this.nextSibling);
+          } else {
+            table.tBodies[0].insertBefore(dragSrcEl, this);
+          }
+        }
+
+        table.querySelectorAll('.border-t-2', '.border-blue-300').forEach(function (el) {
+          el.classList.remove('border-t-2', 'border-blue-300');
+          el.classList.add('border-t', 'border-gray-200');
+        });
+
+        document.getElementById('reorder_button').disabled = false;
+      });
+    }
+  })();
+
+  $('#id_check_all_playlist').on('click', function () {
+    var $this = $(this);
+    if ($this.is(':checked')) {
+      $("#IDPlaylist input[name='id']").each(function () {
+        $(this).prop("checked", true);
+      });
+    } else {
+      $("#IDPlaylist input[name='id']").each(function () {
+        $(this).prop("checked", false);
+      });
+    }
+  });
+
+  $('#station').on('change', function (e) {
+    window.location.href = '{{ request.path }}' + '?station_ref=' + $(this).val() + '&location_ref=' + $('#id_location_input').val();
+  });
+
+  $('#id_location_input').on('change', function (e) {
+    if ($("#station").val() == null) {
+      alert('Please select a station.')
+    } else {
+      window.location.href = '{{ request.path }}' + '?station_ref=' + $('#station').val() + '&location_ref=' + $(this).val();
+    }
+  });
+
+  $("#IDsearch").on('keyup', function (e) {
+    var q = $(this).val();
+    var type = $('#IDtype').val();
+    if (type == '') {
+      alert('Please select a type.');
+    } else {
+      $.ajax({
+        data: {
+          'q': q,
+          'type': $('#IDtype').val()
+        },
+        type: 'post',
+        url: "{% url 'viveca_dashboard_reports_playlist_search' %}",
+        success: function (data) {
+          $('#searchResults').html(data.html);
+
+        },
+        error: function (e) {
+          alert('error');
+        }
+      });
+    }
+  });
+
+  function insertToPlaylist() {
+    $('#searchStation').val($('#station').val());
+    $('#searchLocation').val($('#id_location_input').val());
+    $('#searchForm').submit();
+  }
+
+  function reorderItems() {
+    $('#action').attr('name', 'reorder');
+    $('#IDPlaylist').submit();
+  }
+
+  function exportPlaylist() {
+    $.ajax({
+      data: {
+        'location': $('#id_location_input').val(),
+        'station': $('#station').val(),
+        'export': true
+      },
+      type: 'post',
+      url: "{% url 'viveca_dashboard_reports_playlist' %}",
+      success: function (data) {
+        window.location.href = data.redirect;
+      },
+      error: function (e) {
+        alert('error');
+      }
+    });
+  }
+
+  function deleteItems() {
+    $('#action').attr('name', 'delete');
+    $('#IDPlaylist').submit();
+  }
+
+  function saveItems() {
+    $('#action').attr('name', 'save');
+    $('#IDPlaylist').submit();
+  }
+
+  function processSocialCode(station, location, artist, twitter, instagram) {
+    $.ajax({
+      data: {
+        'station': station,
+        'location': String(location),
+        'artist': artist,
+        'twitter': twitter,
+        'instagram': instagram
+      },
+      type: 'post',
+      url: "{% url 'viveca_dashboard_reports_playlist_social_popup' %}",
+      success: function (data) {
+        $('#social-code-form').html(data.html);
+        $('#social_code_modal_btn').click();
+      },
+      error: function (e) {
+        alert('error');
+      }
+    });
+  }
+
+  function FetchPostData() {
+    var type = $('#id_type').val();
+    var link = $('#txtpost_link').val();
+    if (link == '') {
+      alert('Please enter a post link of the type selected');
+    } else {
+      $.ajax({
+        url: "{% url 'viveca_dashboard_reports_playlist_social_fetch_post_data' %}",
+        data: {
+          'post_type': type,
+          'post_url': link
+        },
+        method: 'POST',
+        success: function (data) {
+          if (data.status == true) {
+            $('#txtimg_link').val(data.media);
+            $('#txtpost_text').val(data.text);
+          } else {
+            alert('No data fetched.');
+          }
+        },
+        error: function (e) {
+          alert('No data fetched.');
+        }
+      });
+    }
+  }
+</script>
+{% endblock %}

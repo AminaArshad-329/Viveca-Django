@@ -1,0 +1,26 @@
+<p class="mb-2"><b>RESULTS TABLE</b></p>
+
+<div class="inline-block min-w-full py-2 align-middle">
+  <table id="mytable" class="min-w-full divide-y divide-separator-gray">
+    <thead>
+      <tr>
+        <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white">TITLE</th>
+        <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-white">ARTIST</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-separator-gray">
+      {% for result in results %}
+      <tr>
+        <td class="px-3 py-4 text-sm text-white">{{ result.title }}</td>
+        <td class="px-3 py-4 text-sm text-white">{{ result.artist }}<input type="hidden" name="item" value="{{result.id}}"></td>
+      </tr>
+      {% empty %}
+      <tr class="odd">
+        <td class="text-base text-center text-white font-semibold px-3 pt-6 lg:pt-8" valign="center" colspan="2" class="dataTables_empty">
+          No records found
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>

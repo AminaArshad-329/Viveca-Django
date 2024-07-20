@@ -1,0 +1,35 @@
+{% load static %}
+
+{% for station in stations %}
+<tr>
+  <td class="relative input-group px-7 sm:w-12 sm:px-6">
+    <input type="checkbox" name="station" value="{{ station.id }}" class="checkbox-input" />
+  </td>
+  <td class="px-3 py-4 text-sm text-white">{{ station.station_name }}</td>
+  <td class="px-3 py-4 text-sm text-white">
+    <img src="{% if station.station_logo %}{{ station.station_logo.url }}{% else %}{% static "images/64img.png" %}{% endif %}"
+      alt="{{ station.station_name|default_if_none:"" }}" height="64" width="64">
+  </td>
+  <td class="relative input-group px-7 sm:w-12 sm:px-6">
+    <input type="checkbox"{% if station.retail %} checked{% endif %} name="retail_id" value="{{ station.id }}" class="checkbox-input" />
+  </td>
+  <td class="whitespace-nowrap input-group px-3 py-4 text-sm text-white">
+    <input type="text" value="{{ station.retailcode|default:'' }}" name="ret_code_{{ station.id }}" placeholder="Retail Code" class="form-control">
+  </td>
+  <td class="relative input-group px-7 sm:w-12 sm:px-6">
+    <input type="checkbox"{% if station.streaming %} checked{% endif %} name="stream_id" value="{{ station.id }}" class="checkbox-input" />
+  </td>
+  <td class="whitespace-nowrap input-group px-3 py-4 text-sm text-white">
+    <input type="text" value="{{ station.stream_url|default:'' }}" name="stream_url_{{ station.id }}" placeholder="Streaming URL" class="form-control">
+  </td>
+  <td class="px-3 py-4 text-sm text-white">{% if station.station_preview %}<div id="{{ station.station_preview.url }}" class="CrbUI_AudioButton"></div>{% endif %}</td>
+  <td class="px-3 py-4 text-sm text-white">{{ station.order_id }}</td>
+  <td class="px-3 py-4 text-sm text-white">{{ station.station_locations }}</td>
+  <td class="px-3 py-4 text-sm text-white">{% if station.published %}<i class="fa-solid fa-eye fa-fw"></i>{% else %}<i class="fa-solid fa-eye-slash fa-fw"></i>{% endif %}</td>
+  <td class="px-3 py-4 text-sm text-white">{{ station.microsite|default:'-' }}</td>
+</tr>
+{% empty %}
+<tr class="odd">
+  <td class="text-base text-center text-white font-semibold px-3 pt-6 lg:pt-8" valign="center" colspan="12" class="dataTables_empty">No records found</td>
+</tr>
+{% endfor %}

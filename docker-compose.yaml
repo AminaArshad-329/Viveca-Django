@@ -1,0 +1,61 @@
+version: "3.9"
+
+services:
+  backend:
+    container_name: django_application
+    build:
+      context: .
+    command: gunicorn mmiradio.wsgi --bind 0.0.0.0:8000 --timeout 120 --workers 4 --reload
+    links:
+      - "db:db"
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/application
+      - static_volume:/static
+    restart: always
+    depends_on:
+      - db
+      # - cache
+    networks:
+      - djangonetwork
+
+  tailwind:
+    build:
+      context: .
+    volumes:
+      - .:/application
+    command: "python manage.py tailwind start"
+    depends_on:
+      - backend
+    tty: true
+
+  db:
+    image: postgres
+    env_file:
+      - .env
+    expose:
+      - "5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    restart: always
+    networks:
+      - djangonetwork
+  # cache:
+  #   image: memcached
+  #   ports:
+  #     - "11211:11211"
+  #   entrypoint:
+  #     - memcached
+  #     - -m 64
+  #   networks:
+  #     - djangonetwork
+
+volumes:
+  pgdata:
+  static_volume:
+
+
+networks:
+  djangonetwork:
+    driver: bridge

@@ -1,0 +1,740 @@
+openapi: 3.0.0
+info:
+  description: This is a sample server for a Django-based API.
+  title: API v2
+  version: 1.0.0
+servers:
+  - url: /api/v2.0
+
+tags:
+  - name: Analytics
+  - name: DJ
+
+paths:
+  /get-station-list/:
+    get:
+      summary: Station List
+      parameters:
+        - in: query
+          name: market-key
+          schema:
+            type: string
+          required: 'true'
+      responses:
+        '200':
+          description: Successful operation
+
+  /get-music/:
+    post:
+      summary: Music Libraries for the station given.
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                station_id:
+                  type: string
+                latitude:
+                  type: string
+                longitude:
+                  type: string
+      responses:
+        '200':
+          description: Successful operation
+
+  /add-library/:
+    post:
+      summary: Adds a track to library.
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - username
+                - password
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+
+                artistname:
+                  type: string
+                title:
+                  type: string
+                love_rating:
+                  type: string
+                media:
+                  type: string
+                  format: uri
+                cover_art:
+                  type: string
+                  format: binary
+                release_year:
+                  type: int
+                skip_allowed:
+                  type: boolean
+                  default: 'true'
+                mark_clean:
+                  type: boolean
+                  default: 'true'
+                duration:
+                  type: string
+                genre:
+                  type: integer
+                  enum: [1, 2, 3, 4, 5]
+                rotation_category:
+                  type: integer
+                  enum: [1, 2, 3, 4, 5, 6]
+                twitter_name:
+                  type: string
+                  format: uri
+                facebook_name:
+                  type: string
+                  format: uri
+                instagram_name:
+                  type: string
+                  format: uri
+                youtube_name:
+                  type: string
+                  format: uri
+                in_point:
+                  type: string
+                aux_point:
+                  type: string
+                vox_point:
+                  type: string
+                relative_link:
+                  type: string
+                  format: uri
+
+
+      responses:
+        '200':
+          description: Successful operation
+
+  /get-retail-music/:
+    post:
+      summary: Returns a JSON response for all Music Libraries for the retail station code given.
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - retail_code
+              properties:
+                retail_code:
+                  type: string
+      responses:
+        '200':
+          description: Successful operation
+
+
+  /get-branding/:
+    post:
+      summary: Returns a JSON response for all Branding Libraries for the station and location given.
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                station_id:
+                  type: string
+                location:
+                  type: string
+      responses:
+        '200':
+          description: Successful operation
+
+
+  /get-advert/:
+    post:
+      summary: Returns a JSON response for all Adverts Libraries for the station and location given.
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                location:
+                  type: string
+      responses:
+        '200':
+          description: Successful operation
+
+  /music-search/:
+    get:
+      summary: Returns a JSON response for all Music Libraries for the search query  given.
+      parameters:
+        - in: query
+          name: q 
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+
+  /get-soundwall/:
+    post:
+      summary: Returns a JSON response for all SoundWall for the channelID given.
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                channel_id:
+                  type: integer
+      responses:
+        '200':
+          description: Successful operation
+
+  /get-station-banners/:
+    post:
+      summary: Returns a JSON response for all banners for the station and type given.
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                station_id:
+                  type: integer
+                bannerType:
+                  type: string
+      responses:
+        '200':
+          description: Successful operation
+
+  /get-user-info/:
+    post:
+      summary: Returns a JSON response of all DJ users info.
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+      responses:
+        '200':
+          description: Successful operation
+
+  /get-social-codes/:
+    get:
+      summary: Returns a JSON response for Social Codes.
+      parameters:
+        - in: query
+          name: station_id
+          schema:
+            type: string
+        - in: query
+          name: latitude
+          schema:
+            type: string
+        - in: query
+          name: longitude
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+
+    post:
+      summary: Returns a JSON response for all social codes for the station in given location.
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                station_id:
+                  type: string
+                latitude:
+                  type: string
+                longitude:
+                  type: string
+      responses:
+        '200':
+          description: Successful operation
+
+  /update-analytics/:
+    post:
+      summary: Saves the current analytics data from iOS/Android.
+      tags:
+        - Analytics
+      responses:
+        '200':
+          description: Successful operation
+
+  /update-tsu-per-station/:
+    post:
+      summary: Saves the current TSU data from iOS/Android.
+      tags:
+        - Analytics
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                station_id:
+                  type: integer
+                total_users:
+                  type: string
+                avg_per_head:
+                  type: string
+                avg_hour_per_user:
+                  type: string
+                total_hours:
+                  type: string
+      responses:
+        '200':
+          description: Successful operation
+
+  /update-music-research/:
+    post:
+      summary: Saves the current analytics data from iOS/Android.
+      tags:
+        - Analytics
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                library_id:
+                  type: integer
+                value:
+                  type: string
+
+      responses:
+        '200':
+          description: Successful operation
+
+  /update-realtime-skip/:
+    post:
+      summary: Saves the current Real Time Skip.
+      tags:
+        - Analytics
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                library_id:
+                  type: integer
+                value:
+                  type: string
+
+      responses:
+        '200':
+          description: Successful operation
+    
+  /update-dashboard-topsongs/:
+    post:
+      summary: Saves the current top song data for dashboard.
+      tags:
+        - Analytics
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                library_id:
+                  type: integer
+                instagram:
+                  type: string
+                rating:
+                  type: decimal
+
+      responses:
+        '200':
+          description: Successful operation
+
+  /add-device-token/:
+    post:
+      summary: Saves the current top song data for dashboard.
+      tags:
+        - Analytics
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                device_token:
+                  type: string
+
+      responses:
+        '200':
+          description: Successful operation
+
+  /dj-signup/:
+    post:
+      summary: User can signup as DJ user and post contents after login.
+      tags:
+        - DJ
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required:
+                - email
+                - username
+                - password
+              properties:
+                email:
+                  type: string
+                  format: email
+                username:
+                  type: string
+                first_name:
+                  type: string
+                last_name:
+                  type: string
+                password:
+                  type: string
+
+      responses:
+        '200':
+          description: Successful operation
+
+  /dj-login/:
+    post:
+      summary: User can login from mobile directly. The request will contain user name,
+        password. If succesful a token will be created. The token will be valid
+        for one day. After that it will be expired.
+      tags:
+        - DJ
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                username:
+                  type: string
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Successful operation
+
+  /dj-check-emailverified/:
+    post:
+      summary: Check if requested user has verified his/her email.
+      tags:
+        - DJ
+      parameters:
+      - in: header
+        name: Authorization
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Successful operation
+
+
+  /reset-password/:
+    post:
+      summary: Password reset process step-1. Mail a key for valid emails, to be used
+        in step-2.
+      tags:
+        - DJ
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+
+      responses:
+        '200':
+          description: Successful operation
+
+
+  /dj-add-content/:
+    post:
+      summary: Loggedin DJ Users can post sound records to MMI Studio.
+        in step-2.
+      tags:
+        - DJ
+      parameters:
+      - in: header
+        name: Authorization
+        schema:
+          type: string
+
+      requestBody:
+         content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                cover_art:
+                  type: string
+                  format: binary
+                title:
+                  type: string
+                tags:
+                  type: string
+                media:
+                  type: string
+                  format: binary
+                recorded:
+                  type: string
+                in_point:
+                  type: string
+                aux_point:
+                  type: string
+                published:
+                  type: boolean
+
+      responses:
+        '200':
+          description: Successful operation
+
+  /user-activity/{type}/:
+    post:
+      tags:
+        - DJ
+      parameters:
+      - in: header
+        name: Authorization
+        schema:
+          type: string
+      - in: path
+        name: type
+        schema:
+          type: string
+
+      requestBody:
+         content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                djid:
+                  type: string
+
+      responses:
+        '200':
+          description: Successful operation
+
+
+  /get-dj-tracks/:
+    post:
+      summary: Returns a JSON response for all published DJ tracks for the
+        DJ-id given.
+      tags:
+        - DJ
+
+      requestBody:
+         content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                djids:
+                  type: string
+                stationID:
+                  type: integer
+                tags:
+                  type: string
+
+      responses:
+        '200':
+          description: Successful operation
+
+  /station-dj-users/:
+    post:
+      summary: Returns a JSON response for all DJ users tracks for the
+        station given.
+      tags:
+        - DJ
+
+      requestBody:
+         content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                station_id:
+                  type: integer
+
+      responses:
+        '200':
+          description: Successful operation
+
+  /get-tags/:
+    get:
+      summary: Returns a JSON response of all tags.
+      tags:
+        - DJ
+      responses:
+        '200':
+          description: Successful operation
+
+  /get-music-beds/:
+    get:
+      summary: Returns a JSON response of all station music beds.
+      tags:
+          - DJ
+      parameters:
+        - in: query
+          name: station_id
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation
+
+  /set-reputation/:
+    post:
+      summary: Set reputation for the DJ-id given.
+      tags:
+        - DJ
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                djid:
+                  type: integer
+                type:
+                  type: string
+
+      responses:
+        '200':
+          description: Successful operation
+
+  /set-subscription/:
+    post:
+      summary: Set subscription for given station.
+      tags:
+          - DJ
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                djid:
+                  type: integer
+                station_id:
+                  type: integer
+
+      responses:
+        '200':
+          description: Successful operation
+
+
+  /get-subscription/:
+    get:
+      summary: Get subscription for given station.
+      tags:
+          - DJ
+      parameters:
+        - in: header
+          name: Authorization
+          schema:
+            type: string
+        - in: query
+          name: djid
+          schema:
+            type: string
+        - in: query
+          name: station_id
+          schema:
+            type: string
+
+      responses:
+        '200':
+          description: Successful operation
+
+  /confirm-password/{token}/:
+    post:
+      parameters:
+      - in: path
+        name: token
+        schema:
+          type: string
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+
+      responses:
+        '200':
+          description: Successful operation
+  
+  /add-media-wall/:
+    post:
+      summary: Loggedin admin user can add media wall contents.
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                related_station:
+                  type: integer
+                cover_art:
+                  type: string
+                  format: binary
+                media:
+                  type: string
+                  format: uri
+                media_type:
+                  type: string
+                  enum: ["audio", "video"]
+                title:
+                  type: string
+                artist:
+                  type: string
+                social_media_handle:
+                  type: string
+                  format: uri
+                youtube:
+                  type: string
+                  format: uri
+                in_point:
+                  type: string
+                aux_point:
+                  type: string
+                rating:
+                  type: integer
+                relative_link:
+                  type: string
+                  format: uri
+                schedule_item:
+                  type: boolean
+                skip_allowed:
+                  type: boolean
+                studio_only:
+                  type: boolean
+                ui_color_foreground:
+                  type: string
+                ui_color_background:
+                  type: string
+      responses:
+        '200':
+          description: Successful operation

@@ -1,0 +1,18 @@
+{% for result in station.station_sequences.all %}
+<div class="form-group mb-6" rating="{{ result.rating }}">
+  <div class="relative input-group py-4">
+    <label class="input-label ml-6">Delete</label>
+    <input type="checkbox" name="delete" value="{{ result.id }}" class="checkbox-input">
+  </div>
+  <div class="flex sequence_stars mb-4">
+    <i class="fa-solid fa-star fa-fw{% if result.rating > 0 %} text-amber-500{% else %} text-white{% endif %}"></i>
+    <i class="fa-solid fa-star fa-fw ml-2{% if result.rating > 1 %} text-amber-500{% else %} text-white{% endif %}"></i>
+    <i class="fa-solid fa-star fa-fw ml-2{% if result.rating > 2 %} text-amber-500{% else %} text-white{% endif %}"></i>
+    <i class="fa-solid fa-star fa-fw ml-2{% if result.rating > 3 %} text-amber-500{% else %} text-white{% endif %}"></i>
+    <i class="fa-solid fa-star fa-fw ml-2{% if result.rating > 4 %} text-amber-500{% else %} text-white{% endif %}"></i>
+  </div>
+  <input type="hidden" name="sequence" value="{{ result.order }}_{{ result.rating }}">
+  <a href="javascript:;" onclick="DecrRate(this);return false;"><i class="fa fa-2x fa-minus-circle blue_i col-md-offset-1"></i></a>
+  <a href="javascript:;" onclick="IncrRate(this);return false;"><i class="fa fa-2x fa-plus-circle blue_i"></i></a>
+</div>
+{% endfor %}

@@ -1,0 +1,64 @@
+<form id="addUserForm" name="userForm" method="post" role="form"
+  action="{% if user_obj %}{% url 'viveca_dashboard_setting_user_edit' user_obj.id %}{% else %}{% url 'viveca_dashboard_setting_user_add' %}{% endif %}">
+  {% csrf_token %}
+
+  <div class="horizontal-input-group {% if form.username.errors %}has-error{% endif %}">
+    <label for="inputEmail3" class="input-label">USERNAME</label>
+    <div class="form-control-box">
+      <input type="text" name="username" value="{{ form.username.value|default:'' }}" id="title-field" class="form-control">
+      {% if form.username.errors %}<span class="help-text">{{ form.username.errors }}</span>{% endif %}
+    </div>
+  </div>
+
+  <div class="horizontal-input-group {% if form.email.errors %}has-error{% endif %}">
+    <label for="inputPassword3" class="input-label">EMAIL ADDRESS</label>
+    <div class="form-control-box">
+      <input type="text" name="email" autocomplete="email" value="{{ form.email.value|default:'' }}" class="form-control" />
+      {% if form.email.errors %}<span class="help-text">{{ form.email.errors }}</span>{% endif %}
+    </div>
+  </div>
+
+  <div id="passwordArea">
+    {% if not user_obj %}
+    <div class="horizontal-input-group {% if form.password1.errors %}has-error{% endif %}">
+      <label for="inputPassword3" class="input-label">PASSWORD</label>
+      <div class="form-control-box">
+        <input type="password" name="password1" autocomplete="new-password" value="{{ form.password1.value|default:'' }}" class="form-control" />
+        {% if form.password1.errors %}<span class="help-text">{{ form.password1.errors }}</span>{% endif %}
+      </div>
+    </div>
+    
+    <div class="horizontal-input-group {% if form.password2.errors %}has-error{% endif %}">
+      <label for="inputPassword3" class="input-label">CONFIRM PASSWORD</label>
+      <div class="form-control-box">
+        <input type="password" name="password2" autocomplete="new-password" value="{{ form.password2.value|default:'' }}" class="form-control" />
+        {% if form.password2.errors %}<span class="help-text">{{ form.password2.errors }}</span>{% endif %}
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="horizontal-input-group {% if form.first_name.errors %}has-error{% endif %}">
+    <label for="inputPassword3" class="input-label">FIRST NAME</label>
+    <div class="form-control-box">
+      <input type="text" name="first_name" value="{{ form.first_name.value|default:'' }}" class="form-control" />
+      {% if form.first_name.errors %}<span class="help-text">{{ form.first_name.errors }}</span>{% endif %}
+    </div>
+  </div>
+
+  <div class="horizontal-input-group {% if form.last_name.errors %}has-error{% endif %}">
+    <label for="inputPassword3" class="input-label">LAST NAME</label>
+    <div class="form-control-box">
+      <input type="text" name="last_name" value="{{ form.last_name.value|default:'' }}" class="form-control" />
+      {% if form.last_name.errors %}<span class="help-text">{{ form.last_name.errors }}</span>{% endif %}
+    </div>
+  </div>
+
+  <div class="horizontal-input-group {% if form.is_active.errors %}has-error{% endif %}">
+    <label for="inputPassword3" class="input-label">IS ACTIVE ?</label>
+    <div class="relative form-control-box">
+      {{ form.is_active }}
+      {% if form.is_active.errors %}<span class="help-text">{{ form.is_active.errors }}</span>{% endif %}
+    </div>
+  </div>
+</form>
